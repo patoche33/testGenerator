@@ -1,0 +1,16 @@
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/Imports.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/Mocks.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/CreateTest.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/bean/SessionAttributeInfo.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/bean/MethodInfo.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/config/Config.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/TypeNameFactory.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/SessionAnalyser.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/MockitoGenerator.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/FileClassException.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/TestClassGenerator.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/bean/FieldInfo.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/bean/MethodCallInfo.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/MethodTestGenerator.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/bean/ClassInfo.java
+/home/psiron01/soda/atelier/workspace/MakeTestUnit/src/generator/ConfigSolver.java
