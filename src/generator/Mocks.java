@@ -1,0 +1,33 @@
+package generator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.squareup.javapoet.ClassName;
+
+public  class Mocks
+{
+
+    public static final Map<String,String> mapMocks = new HashMap<>();
+    
+    /* lister les classe à mocker */
+    private static void initMocks()
+    {
+        mapMocks.put("HttpServletRequest", "jakarta.servlet.http.HttpServletRequest");
+        mapMocks.put("HttpSession", "jakarta.servlet.http.HttpSession");
+        mapMocks.put("DataSource", "jakarta.activation.DataSource");
+       
+       
+    }
+
+    public static Map<String,String> getListmocks()
+    {
+        initMocks();
+        
+        return mapMocks;
+    }
+    
+    
+}
