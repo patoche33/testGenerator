@@ -28,7 +28,9 @@ import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -738,7 +740,14 @@ public class MethodTestGenerator
             // toutes les methodes sont static donc pas d'@injectMocks et on utilse la classe
             blockInvocation.add(classInfo.getClassName() + "." + methodInfo.getName() + "(");
         }
-
+        
+        if (methodInfo.getName().equals("isJourFerie"))
+        {
+            //
+            System.out.println("DEBUG");
+        }
+        
+        // parcours de parametres de la méthode
         for (int i = 0; i < methodInfo.getParameters().size(); i++) // method.getParameters()
         {
             // type du paramètre
@@ -746,11 +755,12 @@ public class MethodTestGenerator
 
             if (i > 0)
                 blockInvocation.add(",");
-
+            
+            //
             String valueParameter = defaultValue(parameterType);
             if (valueParameter.startsWith("new $T"))
             {
-                String abbrev = methodInfo.getParameters().get(i).getNameAsString();// abbreviate(parameterType);
+                String abbrev = methodInfo.getParameters().get(i).getNameAsString();
 
                 // typeName du paramètre (pour import automatique avec $T)
 
@@ -769,7 +779,7 @@ public class MethodTestGenerator
                 if (isPrimitiveOrWrapper(parameterType))
                 {
                     // ecriture des parametres avec nom de la variable déclarée :mamethode(monInt ,maString ,...
-                    // ajouter une daclaration de variable pour les paramèters de la méthode
+                    // ajouter une déclaration de variable pour les paramèters de la méthode
                     String nameParameter = methodInfo.getParameters().get(i).getNameAsString();
                     blockDeclarations.add("$T " + nameParameter + " = " + defaultValue(parameterType), returnType);
                     declarationBlocks.add(blockDeclarations.build());
@@ -809,11 +819,7 @@ public class MethodTestGenerator
             TypeName returnType = typeNameFactory.toTypeName(methodReturnType);
             blockFinal.add("$T" + blockInvocation.build(), returnType);
 
-            if (methodInfo.getName().equals("getReqInsertHistoIndic"))
-            {
-                //
-                System.out.println("DEBUG");
-            }
+           
 
             // gestion assertion
             // la variable a été crée et peut etre utiisée pour assertion
@@ -878,7 +884,7 @@ public class MethodTestGenerator
                                 }
                                 else if (expr.isStringLiteralExpr())
                                 {
-                                    val = expr.asStringLiteralExpr().getValue();
+                                    val = "\"" + expr.asStringLiteralExpr().getValue() +"\"";
                                 }
                                 else if (expr.isIntegerLiteralExpr())
                                 {
@@ -901,7 +907,7 @@ public class MethodTestGenerator
                             else 
                             {
                                 BinaryExpr.Operator op = elmentExpr.getOperateur();
-                                val = op.asString();
+                                val = " " + op.asString() +  " ";
                             }
                             
                             newValue += val;
@@ -1327,7 +1333,32 @@ public class MethodTestGenerator
             return true;
         }
     }
-
+    
+    
+    private boolean isAbstract(Type type) {
+        try {
+            // Résoudre le type
+            ResolvedType resolvedType = type.resolve();
+           
+            // Vérifier si c'est une référence à une classe (et non un type primitif)
+            if (resolvedType.isReferenceType()) {
+                ResolvedReferenceTypeDeclaration decl = resolvedType.asReferenceType().getTypeDeclaration().get();
+                //Si c'est une classe -> on vérifie la présence du modificateur "ABSTRACT"
+               if (decl.isClass())
+               {
+                   String fqn = decl.getQualifiedName();
+                   // On charge la classe depuis le ClassLoader pour lire ses vrais modificateurs
+                   Class<?> clazz = Class.forName(fqn);
+                   return java.lang.reflect.Modifier.isAbstract(clazz.getModifiers());
+                }
+           
+            }
+        } catch (Exception e) {
+            // Le Symbol Solver n'a pas réussi à trouver la classe (ex: dépendance manquante)
+            System.err.println("Impossible de résoudre le type : " + type.asString());
+        }
+        return false;
+    }
     /**
      * Retourne vrai si type =interface List, Map,...
      *
@@ -1361,6 +1392,7 @@ public class MethodTestGenerator
         };
 
     }
+    
 
     public static String getMockOrNewT(Type type)
     {

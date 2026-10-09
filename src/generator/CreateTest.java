@@ -19,6 +19,7 @@ import javax.swing.SwingConstants;
 
 import org.apache.commons.lang3.StringUtils;
 
+import generator.TestClassGenerator;
 import generator.config.Config;
 
 public class CreateTest
