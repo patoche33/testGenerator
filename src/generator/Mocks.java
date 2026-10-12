@@ -21,6 +21,7 @@ public  class Mocks
         mapMocks.put("TimeZone", "java.util.TimeZone");
         mapMocks.put("Calendar", "java.util.Calendar");
         mapMocks.put("LocalDate", "java.time.LocalDate");
+        mapMocks.put("LocalDateTime", "java.time.LocalDateTime");
        
     }
 
