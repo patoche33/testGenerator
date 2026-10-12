@@ -20,7 +20,7 @@ public  class Mocks
         mapMocks.put("DataSource", "jakarta.activation.DataSource");
         mapMocks.put("TimeZone", "java.util.TimeZone");
         mapMocks.put("Calendar", "java.util.Calendar");
-        
+        mapMocks.put("LocalDate", "java.time.LocalDate");
        
     }
 
