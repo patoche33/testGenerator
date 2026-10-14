@@ -6,6 +6,7 @@ import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -161,10 +162,11 @@ public class MethodTestGenerator
             System.out.println("METHODE==>" + methodInfo.getName());
 
             // pour rechercher erreur dans le code
-            // if (methodInfo.getName().equals("parse"))
-            // {
-            // System.out.println("HERE ERROR==>" + methodInfo.getName());
-            // }
+            //getMessagerieParPeriode 
+            if (methodInfo.getName().equals("diffDateInDays"))
+            {
+             System.out.println("HERE ERROR==>" + methodInfo.getName());
+            }
 
             String nameMethod;
             Boolean surcharge;
@@ -529,6 +531,7 @@ public class MethodTestGenerator
         CodeBlock args = buildMatchers(classes.get(fqnMock).getMethods().get(methodSignature));
 
         Type callType = classes.get(fqnMock).getMethods().get(methodSignature).getReturnType();
+        
         String returnValue = defaultValue(callType);
 
         // System.out.println("Retourne " + returnValue);
@@ -740,13 +743,14 @@ public class MethodTestGenerator
             // toutes les methodes sont static donc pas d'@injectMocks et on utilse la classe
             blockInvocation.add(classInfo.getClassName() + "." + methodInfo.getName() + "(");
         }
-        
-        if (methodInfo.getName().equals("isJourFerie"))
+
+        if (methodInfo.getName().equals("datesInDaysBetween"))
         {
-            //
+            // //isJourFerie
             System.out.println("DEBUG");
+
         }
-        
+
         // parcours de parametres de la méthode
         for (int i = 0; i < methodInfo.getParameters().size(); i++) // method.getParameters()
         {
@@ -755,9 +759,10 @@ public class MethodTestGenerator
 
             if (i > 0)
                 blockInvocation.add(",");
-            
+
             //
             String valueParameter = defaultValue(parameterType);
+           
             if (valueParameter.startsWith("new $T"))
             {
                 String abbrev = methodInfo.getParameters().get(i).getNameAsString();
@@ -771,6 +776,18 @@ public class MethodTestGenerator
                 blockDeclarations.clear();
                 blockInvocation.add(abbrev);
 
+            }
+            else if (valueParameter.startsWith("$T.$L("))
+            {
+                String abbrev = methodInfo.getParameters().get(i).getNameAsString();
+                TypeName returnType = typeNameFactory.toTypeName((parameterType));
+                InstanciationEngine.InstantiationStrategy strategy =
+                InstanciationEngine.discoverStrategy(parameterType.asClassOrInterfaceType().getClass());
+                blockDeclarations.add("$T.$L() " + abbrev + " = " + defaultValue(parameterType), returnType, strategy.methodName);
+                declarationBlocks.add(blockDeclarations.build());
+                blockDeclarations.clear();
+                blockInvocation.add(abbrev);
+               
             }
             else
             {
@@ -818,8 +835,6 @@ public class MethodTestGenerator
 
             TypeName returnType = typeNameFactory.toTypeName(methodReturnType);
             blockFinal.add("$T" + blockInvocation.build(), returnType);
-
-           
 
             // gestion assertion
             // la variable a été crée et peut etre utiisée pour assertion
@@ -884,18 +899,18 @@ public class MethodTestGenerator
                                 }
                                 else if (expr.isStringLiteralExpr())
                                 {
-                                    val = "\"" + expr.asStringLiteralExpr().getValue() +"\"";
+                                    val = "\"" + expr.asStringLiteralExpr().getValue() + "\"";
                                 }
                                 else if (expr.isIntegerLiteralExpr())
                                 {
-                                    val =  expr.asIntegerLiteralExpr().getValue();
+                                    val = expr.asIntegerLiteralExpr().getValue();
                                 }
-                                else if (expr.isFieldAccessExpr()) 
+                                else if (expr.isFieldAccessExpr())
                                 {
                                     // Un accès à une propriété / constante : Calendar.MINUTE
                                     FieldAccessExpr field = expr.asFieldAccessExpr();
                                     val = field.getNameAsString();
-                                }    
+                                }
                                 else if (expr.isMethodCallExpr())
                                 {
 
@@ -904,39 +919,34 @@ public class MethodTestGenerator
                                 }
 
                             }
-                            else 
-                            {
-                                BinaryExpr.Operator op = elmentExpr.getOperateur();
-                                val = " " + op.asString() +  " ";
-                            }
-                            
-                            newValue += val;
-                            /*
-                            if (i < expressions.size() - 1)
-                            {
-                                newValue += val + " + ";
-                            }
                             else
                             {
-                                newValue += val;
+                                BinaryExpr.Operator op = elmentExpr.getOperateur();
+                                val = " " + op.asString() + " ";
                             }
-                            */
+
+                            newValue += val;
+                            /*
+                             * if (i < expressions.size() - 1) { newValue += val + " + "; } else { newValue += val; }
+                             */
                         }
                     }
-                   //  Cast (Transtypage)
-                    else if (returnExpr.isCastExpr()) {
+                    // Cast (Transtypage)
+                    else if (returnExpr.isCastExpr())
+                    {
                         CastExpr castExpr = returnExpr.asCastExpr();
                         System.out.println("Type du Cast détecté : " + castExpr.getType()); // "Date"
-                        
+
                         // Récupérer l'expression à l'intérieur du Cast
                         var innerExpr = castExpr.getExpression();
-                        if (innerExpr.isMethodCallExpr()) {
+                        if (innerExpr.isMethodCallExpr())
+                        {
                             MethodCallExpr methodCall = innerExpr.asMethodCallExpr();
-                            
+
                             newValue = defaultValue(methodReturnType);
                         }
                     }
-                    
+
                     /* un appel de methode */
                     else if (returnExpr.isMethodCallExpr())
                     {
@@ -1092,10 +1102,24 @@ public class MethodTestGenerator
     private static String defaultValue(Type type)
     {
         String ret;
+        
         String typeString = type.asString();
-        if (isInterfaceCollection(type))
+        if (isAbstract(type))
         {
-            ret = NEWPARAMETERIZEDT;
+            InstanciationEngine.InstantiationStrategy strategy =
+                InstanciationEngine.discoverStrategy(type.asClassOrInterfaceType().getClass());
+            if (strategy.parameters.length == 0)
+            {
+                return "$T.$L()";
+            }
+            else
+            {
+                return"$T.$L(/* passer les arguments ici */)";
+            }
+        }
+        else if (isInterfaceCollection(type))
+        {
+            return NEWPARAMETERIZEDT;
         }
         else
         {
@@ -1118,9 +1142,9 @@ public class MethodTestGenerator
                 }
 
             }
-
+            return ret;
         }
-        return ret;
+
     }
 
     private static void buildSession(MethodInfo methodInfo)
@@ -1146,8 +1170,10 @@ public class MethodTestGenerator
         sessionAttributes.forEach(attr -> {
             CodeBlock.Builder blockMockito = CodeBlock.builder();
             CodeBlock.Builder blockDeclarations = CodeBlock.builder();
-            String value = defaultValue(attr.getVariable().getType());
-            if (value.startsWith("new $T"))
+             String value = defaultValue(attr.getVariable().getType());
+           
+
+            if (value.toString().startsWith("new $T"))
             {
                 TypeName parameterType = typeNameFactory.toTypeName((attr.getVariable().getType()));
                 String abbrev = abbreviate(attr.getVariable().getType());
@@ -1333,32 +1359,83 @@ public class MethodTestGenerator
             return true;
         }
     }
-    
-    
-    private boolean isAbstract(Type type) {
-        try {
+
+    private static boolean isAbstract(Type type)
+    {
+        try
+        {
             // Résoudre le type
             ResolvedType resolvedType = type.resolve();
-           
-            // Vérifier si c'est une référence à une classe (et non un type primitif)
-            if (resolvedType.isReferenceType()) {
-                ResolvedReferenceTypeDeclaration decl = resolvedType.asReferenceType().getTypeDeclaration().get();
-                //Si c'est une classe -> on vérifie la présence du modificateur "ABSTRACT"
-               if (decl.isClass())
-               {
-                   String fqn = decl.getQualifiedName();
-                   // On charge la classe depuis le ClassLoader pour lire ses vrais modificateurs
-                   Class<?> clazz = Class.forName(fqn);
-                   return java.lang.reflect.Modifier.isAbstract(clazz.getModifiers());
-                }
-           
+            if (type.asString().equals("Calendar") || type.asString().equals("LocalDate"))
+            {
+
+System.out.println("Calendar");
+
             }
-        } catch (Exception e) {
+            // Vérifier si c'est une référence à une classe (et non un type primitif)
+            if (resolvedType.isReferenceType())
+            {
+                ResolvedReferenceTypeDeclaration decl = resolvedType.asReferenceType().getTypeDeclaration().get();
+                // Si c'est une classe -> on vérifie la présence du modificateur "ABSTRACT"
+                if (decl.isClass())
+                {
+                    // via AST
+                    Optional<Node> astNodeOpt = decl.asClass().toAst();
+                    if (astNodeOpt.isPresent() && astNodeOpt.get() instanceof ClassOrInterfaceDeclaration)
+                    {
+                        ClassOrInterfaceDeclaration astClass = (ClassOrInterfaceDeclaration) astNodeOpt.get();
+                        return astClass.isAbstract();
+                    }
+                    else
+                    {
+                        String qualifiedName = decl.asClass().getQualifiedName();
+                        try {
+                            // Charge la structure de la classe via le ClassLoader
+                            Class<?> clazz = Class.forName(qualifiedName);
+                            
+                            // Utilisation de l'API Reflection classique de Java
+                            boolean isAbstract = java.lang.reflect.Modifier.isAbstract(clazz.getModifiers());
+                            
+                            if (isAbstract) {
+                                System.out.println(qualifiedName + " est une classe abstraite !");
+                            }
+                        } catch (ClassNotFoundException e) {
+                            
+                            System.err.println("Impossible de charger la classe : " + qualifiedName);
+                            // Option 2 : Pour les JARs/JDK externes non chargés par la JVM courante,
+                            // on demande au résolveur s'il s'agit d'une interface ou d'une classe sans constructeur accessible.
+                            // Malheureusement, l'accès aux modificateurs de ResolvedClassDeclaration varie selon les versions.
+                            // Si votre version ne l'a pas, on ruse en inspectant ses ancêtres ou constructeurs :
+                            
+                            boolean aUnConstructeurInterneUniquement = decl.getConstructors().stream()
+                                    .noneMatch(c -> c.accessSpecifier().toString().equals("PUBLIC"));
+                                    
+                            // Une classe externe sans constructeur public est soit abstraite (ex: Calendar), 
+                            // soit finale typée Factory (ex: Joda LocalDate ou Java LocalDate).
+                            // Dans l'esprit d'un générateur universel, les deux nécessitent de chercher une Factory Method !
+                            return aUnConstructeurInterneUniquement;
+                            
+                            
+                            
+                            
+                            
+                        }
+                    }
+                   
+                   
+                    
+                }
+
+            }
+        }
+        catch (Exception e)
+        {
             // Le Symbol Solver n'a pas réussi à trouver la classe (ex: dépendance manquante)
             System.err.println("Impossible de résoudre le type : " + type.asString());
         }
         return false;
     }
+
     /**
      * Retourne vrai si type =interface List, Map,...
      *
@@ -1378,7 +1455,7 @@ public class MethodTestGenerator
 
     }
 
-    public static Boolean isPrimitiveOrWrapper(Type type)
+    private static Boolean isPrimitiveOrWrapper(Type type)
     {
         if (type.isPrimitiveType())
             return true;
@@ -1392,7 +1469,6 @@ public class MethodTestGenerator
         };
 
     }
-    
 
     public static String getMockOrNewT(Type type)
     {
