@@ -163,11 +163,13 @@ public class MethodTestGenerator
 
             // pour rechercher erreur dans le code
             //getMessagerieParPeriode 
-            if (methodInfo.getName().equals("diffDateInDays"))
+            if (//methodInfo.getName().equals("sendMail") ||
+                methodInfo.getName().equals("getGraphStockDemandes"))
             {
-             System.out.println("HERE ERROR==>" + methodInfo.getName());
+             System.out.println("HERE Method==>" + methodInfo.getName());
             }
-
+            
+            
             String nameMethod;
             Boolean surcharge;
             // pas de test pour les methodes privées
@@ -196,8 +198,8 @@ public class MethodTestGenerator
             // Configuration de JavaParser avec le résolveur de symboles (requis pour lier méthode -> exception)
 
             methodInfo.getExceptions().forEach((k, v) -> {
-                // System.out.println(k + "=" + v);
-                generateMethod(methodInfo, "test" + capitalize(nameMethod + "_" + k), surcharge, k);
+                String simpleName = k.substring(k.lastIndexOf('.') + 1);
+                generateMethod(methodInfo, "test" + capitalize(nameMethod + "_" + simpleName), surcharge, k);
             });
 
             generateMethod(methodInfo, "test" + capitalize(nameMethod), surcharge, "");
@@ -235,12 +237,29 @@ public class MethodTestGenerator
          * Ajouter les exceptions dans la signature de la méthode de test exemple:
          * @Test void testSendMai() throws MessagingException, ConfigurationException {
          */
-        methodInfo.getDeclaration().getThrownExceptions().forEach(refType -> {
-            TypeName returnType = typeNameFactory.toTypeName((refType));
-            ClassName exceptionClass = ClassName.bestGuess(refType.asString());
-            methodeBuilder.addException(returnType);
-        });
-
+        if (!methodInfo.getDeclaration().getThrownExceptions().isEmpty())
+        {   //exception présente dans la signature de la méthode (throws...)
+            //exemple: public static String maMethode(Strin arg1, ...)  throws  ConfigurationException
+            methodInfo.getDeclaration().getThrownExceptions().forEach(refType -> {
+                /*
+                TypeName returnType = typeNameFactory.toTypeName((refType));
+                ClassName exceptionClass = ClassName.bestGuess(refType.asString());
+                methodeBuilder.addException(returnType);
+                */
+                String fqn = refType.resolve().describe();
+               methodeBuilder.addException(ClassName.bestGuess(fqn));
+            });
+        }
+        else if (!methodInfo.getExceptions().isEmpty())
+        {
+            //exception non présente dans la signature de la méthode (throws...)
+            //mais presence de try catch dans la méthode
+            methodInfo.getExceptions().forEach((Excep, liste) -> {
+                TypeName returnType = ClassName.bestGuess(Excep);
+                methodeBuilder.addException(returnType);
+            });
+        }
+        
         /* gestion when pour exception pouvant être déclenché dans bloc try catch du corps de la méthode à tester */
         if (!exception.isEmpty())
         {
@@ -556,19 +575,22 @@ public class MethodTestGenerator
 
                 if (isInterfaceCollection(callType) || returnValue.startsWith("new $T"))
                 {
-                    blockDeclarations.add("$T " + abbrev + " = " + returnValue, returnType, implType);
+                    blockDeclarations.add("$T $L  = " + returnValue,
+                        returnType,
+                        abbrev,
+                        implType);
                     returnValue = abbrev;
                     // ajout de la variable dans la map des variables de la methode
                     variableBlocks.put(returnType.toString(), abbrev);
                 }
 
             }
-
+                       
+            
             blockInvocation.add("when($L.$L($L)).thenReturn(" + returnValue + ")",
                 "mock" + StringUtils.capitalize(mock),
                 methodName,
                 args
-            // ,returnValue
             );
         }
         else
@@ -634,24 +656,25 @@ public class MethodTestGenerator
 
                     Expression scopeExpr = v.getMethodCallExpr().getScope().get();
                     ResolvedType resolvedType = scopeExpr.calculateResolvedType();
-                    System.out.println(resolvedType.describe());
+                    
 
                     String mock = StringUtils.capitalize(v.getMethodCallExpr().getScope().get().toString());
 
-                    CodeBlock args = buildMatchers(v.getMethodCallExpr());
+                    
 
                     // HERE ERROR car ne se trouve pas dans la liste des classes à tester
                     // car il s'agit de DateFormat squi instancier dan sla methode (DateFormat formatter = new SimpleDateFormat(format,
                     // Locale.FRENCH);
 
-                    // Ne fait pas parti des varaibles de la classe , donc instancié dans la méthode.
+                    // Ne fait pas parti des variables de la classe , donc instancié dans la méthode.
                     // on ne fait rien
                     if (classInfo.getImports().get(mock) == null)
                     {
-                        System.out.println("HERE ERROR addWhenException =>" + mock);
+                       // System.out.println("HERE ERROR addWhenException =>" + mock);
                     }
                     else
                     {
+                        CodeBlock args = buildMatchers(v.getMethodCallExpr());
                         String fqnMock = classInfo.getImports().get(mock);
                         String importMock = fqnMock.substring(0, fqnMock.lastIndexOf("."));
                         /* Méthode non static d'une autre classe */
@@ -704,12 +727,6 @@ public class MethodTestGenerator
             }
         }
 
-        /*
-         * CodeBlock args = buildMatchers(methodInfo); blockInvocation.add("when($L.$L($L)).thenThrow(" + exception + ".class)",
-         * "mock" + StringUtils.capitalize(classInfo.getClassName()), methodInfo.getName(), args // ,returnValue );
-         * declarationBlocks.add(blockInvocation.build()); if (!getListMocks().contains(classInfo.getClassName())) {
-         * listMocks.add("mock" + StringUtils.capitalize(classInfo.getClassName())) ; }
-         */
     }
 
     /**
@@ -772,6 +789,8 @@ public class MethodTestGenerator
                 TypeName parameterTypeName = typeNameFactory.toTypeName(implemetOfType(parameterType));
                 TypeName returnType = typeNameFactory.toTypeName((parameterType));
                 blockDeclarations.add("$T " + abbrev + " = " + defaultValue(parameterType), returnType, parameterTypeName);
+                
+                
                 declarationBlocks.add(blockDeclarations.build());
                 blockDeclarations.clear();
                 blockInvocation.add(abbrev);
@@ -779,14 +798,24 @@ public class MethodTestGenerator
             }
             else if (valueParameter.startsWith("$T.$L("))
             {
-                String abbrev = methodInfo.getParameters().get(i).getNameAsString();
-                TypeName returnType = typeNameFactory.toTypeName((parameterType));
-                InstanciationEngine.InstantiationStrategy strategy =
-                InstanciationEngine.discoverStrategy(parameterType.asClassOrInterfaceType().getClass());
-                blockDeclarations.add("$T.$L() " + abbrev + " = " + defaultValue(parameterType), returnType, strategy.methodName);
-                declarationBlocks.add(blockDeclarations.build());
-                blockDeclarations.clear();
-                blockInvocation.add(abbrev);
+                String fullyQualifiedName = parameterType.resolve().asReferenceType().getQualifiedName();
+                try
+                {
+                    Class<?> clazz = Class.forName(fullyQualifiedName);
+                    String abbrev = methodInfo.getParameters().get(i).getNameAsString();
+                    TypeName returnType = typeNameFactory.toTypeName((parameterType));
+                    InstanciationEngine.InstantiationStrategy strategy =
+                    InstanciationEngine.strategyFactory(clazz);
+                    blockDeclarations.add("$T " + abbrev + " = $T.$L()" , returnType, returnType,strategy.methodName);
+                    declarationBlocks.add(blockDeclarations.build());
+                    blockDeclarations.clear();
+                    blockInvocation.add(abbrev);
+                }
+                catch (ClassNotFoundException e)
+                {
+                    blockDeclarations.add("//");
+                }
+                
                
             }
             else
@@ -798,11 +827,13 @@ public class MethodTestGenerator
                     // ecriture des parametres avec nom de la variable déclarée :mamethode(monInt ,maString ,...
                     // ajouter une déclaration de variable pour les paramèters de la méthode
                     String nameParameter = methodInfo.getParameters().get(i).getNameAsString();
-                    blockDeclarations.add("$T " + nameParameter + " = " + defaultValue(parameterType), returnType);
+                    //blockDeclarations.add("$T " + nameParameter + " = " + defaultValue(parameterType), returnType);
+                    blockDeclarations.add(parameterType.asString() + " " + nameParameter + " = " + defaultValue(parameterType));
+                    
                     declarationBlocks.add(blockDeclarations.build());
                     blockDeclarations.clear();
-
-                    blockInvocation.add(nameParameter, returnType);
+                    //blockInvocation.add(nameParameter, returnType);
+                    blockInvocation.add(nameParameter);
                 }
                 else
                 {
@@ -834,7 +865,12 @@ public class MethodTestGenerator
             }
 
             TypeName returnType = typeNameFactory.toTypeName(methodReturnType);
-            blockFinal.add("$T" + blockInvocation.build(), returnType);
+            //blockFinal.add("$T" + blockInvocation.build(), returnType);
+        
+/******* HERE MODIF ****///////
+            
+            blockFinal.add("$L" + blockInvocation.build(), methodReturnType);
+           
 
             // gestion assertion
             // la variable a été crée et peut etre utiisée pour assertion
@@ -935,7 +971,7 @@ public class MethodTestGenerator
                     else if (returnExpr.isCastExpr())
                     {
                         CastExpr castExpr = returnExpr.asCastExpr();
-                        System.out.println("Type du Cast détecté : " + castExpr.getType()); // "Date"
+                        //System.out.println("Type du Cast détecté : " + castExpr.getType()); // "Date"
 
                         // Récupérer l'expression à l'intérieur du Cast
                         var innerExpr = castExpr.getExpression();
@@ -984,11 +1020,21 @@ public class MethodTestGenerator
                     if (newValue.startsWith("new $T"))
                     {
                         TypeName implType = typeNameFactory.toTypeName(implemetOfType(methodReturnType));
-                        blockDeclarations.add("$T " + abbrev + " = " + newValue, returnType, implType);
+                        blockDeclarations.add("$L " + abbrev + " = " + newValue, 
+                            methodReturnType.asString(),
+                            implType);
                     }
                     else
-                    {
-                        blockDeclarations.add("$T " + abbrev + " = " + newValue, returnType);
+                    {   //si primitive ou wrapper( int, String,...) pas besoin d'import (java.lanng est importé implicitement)
+                        if (isPrimitiveOrWrapper(methodReturnType))
+                        {
+                            blockDeclarations.add(methodReturnType.asString() + " " + abbrev + " = " + newValue);
+                        }
+                        else
+                        {
+                            blockDeclarations.add("$T " + abbrev + " = " + newValue, returnType);
+                        }
+                        
                     }
                     declarationBlocks.add(blockDeclarations.build());
                     attendu = abbrev;
@@ -1061,7 +1107,7 @@ public class MethodTestGenerator
             blockInvocation.add(classInfo.getClassName() + "." + methodInfo.getName() + "(");
 
         }
-
+        // parcours des parametres de la méthode
         for (int i = 0; i < methodInfo.getParameters().size(); i++) // method.getParameters()
         {
             // type du paramètre
@@ -1083,10 +1129,50 @@ public class MethodTestGenerator
                 blockInvocation.add(abbrev);
 
             }
+            else if (valueParameter.startsWith("$T.$L("))
+            {
+                String fullyQualifiedName = parameterType.resolve().asReferenceType().getQualifiedName();
+                try
+                {
+                    Class<?> clazz = Class.forName(fullyQualifiedName);
+                    String abbrev = methodInfo.getParameters().get(i).getNameAsString();
+                    TypeName returnType = typeNameFactory.toTypeName((parameterType));
+                    InstanciationEngine.InstantiationStrategy strategy =
+                    InstanciationEngine.strategyFactory(clazz);
+                    blockDeclarations.add("$T " + abbrev + " = $T.$L()" , returnType, returnType,strategy.methodName);
+                    declarationBlocks.add(blockDeclarations.build());
+                    blockDeclarations.clear();
+                    blockInvocation.add(abbrev);
+                }
+                catch (ClassNotFoundException e)
+                {
+                    blockDeclarations.add("//");
+                }
+                
+               
+            }
             else
             {
                 TypeName returnType = typeNameFactory.toTypeName((parameterType));
-                blockInvocation.add(defaultValue(parameterType), returnType);
+                if (isPrimitiveOrWrapper(parameterType))
+                {
+                    // ecriture des parametres avec nom de la variable déclarée :mamethode(monInt ,maString ,...
+                    // ajouter une déclaration de variable pour les paramèters de la méthode
+                    String nameParameter = methodInfo.getParameters().get(i).getNameAsString();
+                    //blockDeclarations.add("$T " + nameParameter + " = " + defaultValue(parameterType), returnType);
+                    blockDeclarations.add(parameterType.asString() + " " + nameParameter + " = " + defaultValue(parameterType));
+                    
+                    declarationBlocks.add(blockDeclarations.build());
+                    blockDeclarations.clear();
+
+                    blockInvocation.add(nameParameter, returnType);
+                }
+                else
+                {
+                    // ecriture des parametres avec une valeur exemple :mamethode(10 ,"valeur1" ,...
+                    blockInvocation.add(defaultValue(parameterType), returnType);
+
+                }
             }
         }
 
@@ -1106,16 +1192,8 @@ public class MethodTestGenerator
         String typeString = type.asString();
         if (isAbstract(type))
         {
-            InstanciationEngine.InstantiationStrategy strategy =
-                InstanciationEngine.discoverStrategy(type.asClassOrInterfaceType().getClass());
-            if (strategy.parameters.length == 0)
-            {
-                return "$T.$L()";
-            }
-            else
-            {
-                return"$T.$L(/* passer les arguments ici */)";
-            }
+           return "$T.$L()";
+           
         }
         else if (isInterfaceCollection(type))
         {
@@ -1239,6 +1317,7 @@ public class MethodTestGenerator
 
     private static String matcher(String e)
     {
+        
         String ret = switch (e.split("<")[0].trim())
         {
             case "String" -> "anyString";
@@ -1319,7 +1398,7 @@ public class MethodTestGenerator
         try
         {
 
-            // 2. Vérifier si c'est un nœud issu du code source (JavaParser)
+            // Vérifier si c'est un nœud issu du code source (JavaParser)
             if (resolvedCall instanceof JavaParserMethodDeclaration)
             {
                 // Récupérer le vrai MethodDeclaration de l'AST
@@ -1328,12 +1407,12 @@ public class MethodTestGenerator
                 // 3. Vérifier les modificateurs de portée
                 if (methodDecl.isPrivate())
                 {
-                    System.out.println("La méthode est PRIVÉE !");
+                   // System.out.println("La méthode est PRIVÉE !");
                     return true;
                 }
                 else
                 {
-                    System.out.println("La méthode n'est pas privée.");
+                    //System.out.println("La méthode n'est pas privée.");
                     return false;
                 }
             }
@@ -1343,12 +1422,12 @@ public class MethodTestGenerator
                 // On passe par le ResolvedMethodDeclaration
                 if (resolvedCall.accessSpecifier() == AccessSpecifier.PRIVATE)
                 {
-                    System.out.println("La méthode externe est PRIVÉE !");
+                    //System.out.println("La méthode externe est PRIVÉE !");
                     return true;
                 }
                 else
                 {
-                    System.out.println("La méthode externe n'est pas privée.");
+                    //System.out.println("La méthode externe n'est pas privée.");
                     return false;
                 }
             }
@@ -1366,12 +1445,7 @@ public class MethodTestGenerator
         {
             // Résoudre le type
             ResolvedType resolvedType = type.resolve();
-            if (type.asString().equals("Calendar") || type.asString().equals("LocalDate"))
-            {
-
-System.out.println("Calendar");
-
-            }
+        
             // Vérifier si c'est une référence à une classe (et non un type primitif)
             if (resolvedType.isReferenceType())
             {
@@ -1387,7 +1461,7 @@ System.out.println("Calendar");
                         return astClass.isAbstract();
                     }
                     else
-                    {
+                    {   //via refect
                         String qualifiedName = decl.asClass().getQualifiedName();
                         try {
                             // Charge la structure de la classe via le ClassLoader
@@ -1396,13 +1470,16 @@ System.out.println("Calendar");
                             // Utilisation de l'API Reflection classique de Java
                             boolean isAbstract = java.lang.reflect.Modifier.isAbstract(clazz.getModifiers());
                             
+                            /*
                             if (isAbstract) {
                                 System.out.println(qualifiedName + " est une classe abstraite !");
                             }
-                        } catch (ClassNotFoundException e) {
-                            
-                            System.err.println("Impossible de charger la classe : " + qualifiedName);
-                            // Option 2 : Pour les JARs/JDK externes non chargés par la JVM courante,
+                            */
+                            return isAbstract;
+                        } 
+                        catch (ClassNotFoundException e) {
+                            // Pour les JARs/JDK externes non chargés par la JVM courante,
+                                                        
                             // on demande au résolveur s'il s'agit d'une interface ou d'une classe sans constructeur accessible.
                             // Malheureusement, l'accès aux modificateurs de ResolvedClassDeclaration varie selon les versions.
                             // Si votre version ne l'a pas, on ruse en inspectant ses ancêtres ou constructeurs :
@@ -1626,13 +1703,13 @@ System.out.println("Calendar");
 
                                                 classInfo.getMethods()
                                                     .get(resolvedParent.getSignature())
-                                                    .getExceptions().put(nameException, listExceptions);
+                                                    .getExceptions().put(exceptionType.describe(), listExceptions);
                                             }
                                             else
                                             {
                                                 classInfo.getMethods()
                                                     .get(resolvedParent.getSignature())
-                                                    .getExceptions().get(nameException)
+                                                    .getExceptions().get(exceptionType.describe())
                                                     // .add(resolved);
                                                     .add(methodCallInfo);
                                             }

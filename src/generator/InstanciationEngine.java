@@ -11,7 +11,7 @@ public class InstanciationEngine
 
     public enum StrategyType
     {
-        CONSTRUCTOR, FACTORY_METHOD, BUILDER, INTERFACE_PROXY
+        CONSTRUCTOR, FACTORY_METHOD, BUILDER, INTERFACE_PROXY, NULL
     }
 
     public static class InstantiationStrategy
@@ -31,44 +31,45 @@ public class InstanciationEngine
 
     public static InstantiationStrategy discoverStrategy(Class<?> clazz)
     {
+       
+
+        // Cas Interfaces (Elles ne peuvent jamais avoir de Factory Methods retournant leur propre
+        //type concret directement dans la classe même avant Java 8, et s'appuient généralement sur des Proxies)
+        if (clazz.isInterface() )
+        {
+            return stategyProxy();
+        }
+        else if (!Modifier.isAbstract(clazz.getModifiers())) {  //CLASSES CONCRÈTES
+          
+            return stategyConstructor(clazz);
+            
+        }
+        else
+        {
+            return strategyFactory(clazz); //classe abstraite
+        }
+        
+        //throw new IllegalArgumentException("Impossible de trouver un moyen d'instancier automatiquement : " + clazz.getName());
+    }
+
+    // Assigne un score de priorité aux noms de méthodes d'instanciation courantes
+    public static int scoreFactoryName(String name)
+    {
+        return switch (name)
+        {
+            case "now", "current" -> 1; // Priorité maximale (LocalDate, Instant)
+            case "getInstance" -> 2; // Commun (Calendar, Signatures)
+            case "getDefault", "system" -> 3; // Fallbacks fréquents
+            default -> 10;
+        };
+    }
+    
+    public static InstantiationStrategy strategyFactory(Class<?> clazz)
+    {
         InstantiationStrategy strategy = new InstantiationStrategy();
-
-        // Cas 0 : Interfaces ou Classes Abstraites
-        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers()))
-        {
-            strategy.type = StrategyType.INTERFACE_PROXY;
-            return strategy;
-        }
-
-        // Cas 1 : Constructeur public sans argument (Le plus simple)
-        try
-        {
-            Constructor<?> emptyConstructor = clazz.getConstructor();
-            if (Modifier.isPublic(emptyConstructor.getModifiers()))
-            {
-                strategy.type = StrategyType.CONSTRUCTOR;
-                strategy.parameters = new Parameter[0];
-                return strategy;
-            }
-        }
-        catch (NoSuchMethodException ignored)
-        {
-        }
-
-        // Cas 2 : Constructeurs publics avec arguments
-        Constructor<?>[] constructors = clazz.getConstructors();
-        Optional<Constructor<?>> publicConstructor = Arrays.stream(constructors)
-            .filter(c -> Modifier.isPublic(c.getModifiers()))
-            .findFirst(); // On prend le premier disponible pour l'exemple
-
-        if (publicConstructor.isPresent())
-        {
-            strategy.type = StrategyType.CONSTRUCTOR;
-            strategy.parameters = publicConstructor.get().getParameters();
-            return strategy;
-        }
-
-        // Cas 3 : Pas de constructeur public -> Recherche de Factory Methods (ex: LocalDate.now())
+        // Cas TOUTES CLASSES (Abstraites et Concrètes sans constructeur public) : 
+        //Recherche de Factory Methods (ex: TimeZone.getDefault(), LocalDate.now())
+        
         Method[] methods = clazz.getMethods();
 
         // Priorité aux fabriques sans arguments typées "temps réel" ou globales (now, getInstance)
@@ -83,7 +84,6 @@ public class InstanciationEngine
             strategy.type = StrategyType.FACTORY_METHOD;
             strategy.methodName = factoryNoArg.get().getName();
             strategy.parameters = new Parameter[0];
-            return strategy;
         }
 
         // Recherche de fabriques avec arguments (ex: LocalDate.of(y, m, d) ou valueOf)
@@ -98,10 +98,9 @@ public class InstanciationEngine
             strategy.type = StrategyType.FACTORY_METHOD;
             strategy.methodName = factoryWithArgs.get().getName();
             strategy.parameters = factoryWithArgs.get().getParameters();
-            return strategy;
         }
 
-        // Cas 4 : Recherche d'un Builder interne (Pattern Lombok / Builder classique)
+        // Cas  Recherche d'un Builder interne (Pattern Lombok / Builder classique)
         Optional<Method> builderMethod = Arrays.stream(methods)
             .filter(m -> Modifier.isStatic(m.getModifiers()))
             .filter(m -> m.getName().equals("builder"))
@@ -111,22 +110,51 @@ public class InstanciationEngine
         {
             strategy.type = StrategyType.BUILDER;
             strategy.methodName = "builder";
-            return strategy;
+        }
+        
+        return strategy;
+
+    }
+    
+    public static InstantiationStrategy stategyConstructor(Class<?> clazz)
+    {
+        InstantiationStrategy strategy = new InstantiationStrategy();
+        try
+        {
+            Constructor<?> emptyConstructor = clazz.getConstructor();
+            if (Modifier.isPublic(emptyConstructor.getModifiers()))
+            {
+                strategy.type = StrategyType.CONSTRUCTOR;
+                strategy.parameters = new Parameter[0];
+            }
+        }
+        catch (NoSuchMethodException ignored)
+        {
+            strategy.type = StrategyType.NULL;
         }
 
-        throw new IllegalArgumentException("Impossible de trouver un moyen d'instancier automatiquement : " + clazz.getName());
-    }
+        // Cas Constructeurs publics avec arguments
+        Constructor<?>[] constructors = clazz.getConstructors();
+        Optional<Constructor<?>> publicConstructor = Arrays.stream(constructors)
+            .filter(c -> Modifier.isPublic(c.getModifiers()))
+            .findFirst(); 
 
-    // Assigne un score de priorité aux noms de méthodes d'instanciation courantes
-    private static int scoreFactoryName(String name)
-    {
-        return switch (name)
+        if (publicConstructor.isPresent())
         {
-            case "now", "current" -> 1; // Priorité maximale (LocalDate, Instant)
-            case "getInstance" -> 2; // Commun (Calendar, Signatures)
-            case "getDefault", "system" -> 3; // Fallbacks fréquents
-            default -> 10;
-        };
+            strategy.type = StrategyType.CONSTRUCTOR;
+            strategy.parameters = publicConstructor.get().getParameters();
+        }
+        
+        return strategy;
     }
-
+    
+    public static InstantiationStrategy stategyProxy() {
+        
+        InstantiationStrategy strategy = new InstantiationStrategy();
+        // Cas Interfaces (Elles ne peuvent jamais avoir de Factory Methods retournant leur propre
+        //type concret directement dans la classe même avant Java 8, et s'appuient généralement sur des Proxies)
+         strategy.type = StrategyType.INTERFACE_PROXY;
+        return strategy;
+       
+    }
 }
