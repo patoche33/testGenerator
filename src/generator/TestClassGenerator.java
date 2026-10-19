@@ -281,7 +281,7 @@ public class TestClassGenerator
             cu.getPackageDeclaration()
                 .map(p -> p.getNameAsString())
                 .orElse(""),
-            testClass.build());
+            testClass.build()).skipJavaLangImports(true);
 
         /*
          * Ajout des imports Static du genre import static org.junit.jupiter.api.Assertions.assertTrue; import static

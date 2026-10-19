@@ -865,11 +865,11 @@ public class MethodTestGenerator
             }
 
             TypeName returnType = typeNameFactory.toTypeName(methodReturnType);
-            //blockFinal.add("$T" + blockInvocation.build(), returnType);
+            blockFinal.add("$T" + blockInvocation.build(), returnType);
         
 /******* HERE MODIF ****///////
             
-            blockFinal.add("$L" + blockInvocation.build(), methodReturnType);
+            //blockFinal.add("$L" + blockInvocation.build(), methodReturnType);
            
 
             // gestion assertion
@@ -1019,10 +1019,17 @@ public class MethodTestGenerator
 
                     if (newValue.startsWith("new $T"))
                     {
-                        TypeName implType = typeNameFactory.toTypeName(implemetOfType(methodReturnType));
-                        blockDeclarations.add("$L " + abbrev + " = " + newValue, 
-                            methodReturnType.asString(),
-                            implType);
+                        TypeName typeName = typeNameFactory.toTypeName(methodReturnType);
+                        TypeName implTypeName = typeNameFactory.toTypeName(implemetOfType(methodReturnType));
+                       /*
+                          TypeName implTypeName = typeNameFactory.toTypeName(implemetOfType(methodReturnType));
+                          blockDeclarations.add("$L " + abbrev + " = " + newValue, 
+                                  methodReturnType.asString(),
+                            implTypeName);
+                         */
+                        blockDeclarations.add("$T " + abbrev + " = " + newValue, 
+                            typeName,
+                            implTypeName);
                     }
                     else
                     {   //si primitive ou wrapper( int, String,...) pas besoin d'import (java.lanng est importé implicitement)
