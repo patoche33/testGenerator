@@ -18,11 +18,14 @@ public  class Mocks
         mapMocks.put("HttpServletRequest", "jakarta.servlet.http.HttpServletRequest");
         mapMocks.put("HttpSession", "jakarta.servlet.http.HttpSession");
         mapMocks.put("DataSource", "jakarta.activation.DataSource");
-        mapMocks.put("TimeZone", "java.util.TimeZone");
+        
+       /* 
+        *
+        * mapMocks.put("TimeZone", "java.util.TimeZone");
         mapMocks.put("Calendar", "java.util.Calendar");
         mapMocks.put("LocalDate", "java.time.LocalDate");
         mapMocks.put("LocalDateTime", "java.time.LocalDateTime");
-       
+       */
     }
 
     public static Map<String,String> getListmocks()

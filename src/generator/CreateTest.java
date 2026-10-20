@@ -55,7 +55,7 @@ public class CreateTest
         }
         catch (Exception e)
         {
-            System.out.println("Traitement interrompu. ");
+            System.out.println("Traitement interrompu. "+e.getMessage());
         }
         System.out.println("*** Fin traitement ***");
     }

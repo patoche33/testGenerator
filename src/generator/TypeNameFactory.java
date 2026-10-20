@@ -58,6 +58,9 @@ public class TypeNameFactory {
 
     private TypeName classType(ClassOrInterfaceType type) {
 
+        String typeNameString = type.getNameAsString();
+
+        
         ClassName raw = resolve(type.getNameAsString());
 
         if (type.getTypeArguments().isEmpty()) {
@@ -80,25 +83,25 @@ public class TypeNameFactory {
         switch (simpleName) {
 
             case "String":
-                return ClassName.get("java.lang", "String");
+                return ClassName.get(String.class);
 
             case "Integer":
-                return ClassName.get("java.lang", "Integer");
+                return ClassName.get(Integer.class);
 
             case "Long":
-                return ClassName.get("java.lang", "Long");
+                return ClassName.get(Long.class);
 
             case "Boolean":
-                return ClassName.get("java.lang", "Boolean");
+                return ClassName.get(Boolean.class);
 
             case "Double":
-                return ClassName.get("java.lang", "Double");
+                return ClassName.get(Double.class);
 
             case "Float":
-                return ClassName.get("java.lang", "Float");
+                return ClassName.get(Float.class);
 
             case "Object":
-                return ClassName.get("java.lang", "Object");
+                return TypeName.OBJECT;
         }
 
        // Collections Java
@@ -120,7 +123,7 @@ public class TypeNameFactory {
                 return ClassName.get("java.util", "Map");
                 
             case "Hashmap":
-                return ClassName.get("java.util", "Hashmap"); 
+                return ClassName.get("java.util", "HashMap"); 
 
             case "Optional":
                 return ClassName.get("java.util", "Optional");
