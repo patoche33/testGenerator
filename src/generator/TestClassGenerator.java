@@ -247,7 +247,7 @@ public class TestClassGenerator
         /* retrouver la classe dans la liste des classes */
         CompilationUnit cu = StaticJavaParser.parse(sourceFile);
         ClassOrInterfaceDeclaration clazz = cu.findFirst(ClassOrInterfaceDeclaration.class)
-            .orElseThrow(null);
+            .orElse(null);
         if (clazz == null)
             return;
 

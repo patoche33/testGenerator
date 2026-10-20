@@ -72,7 +72,7 @@ public class ConfigSolver {
                     }
                     catch (IOException e)
                     {
-                        System.out.println("ERREUR dans ajout Type Resolver de MAVEn dependance " );
+                        System.out.println("ERREUR dans ajout Type Resolver de MAVEN dependance " );
                     }
                 });   // Afficher le chemin
                 
@@ -83,7 +83,10 @@ public class ConfigSolver {
         
         
         JavaSymbolSolver symbolSolver =  new JavaSymbolSolver(typeSolver);
-        ParserConfiguration config = new ParserConfiguration();
+        ParserConfiguration config = new ParserConfiguration()
+                                        .setAttributeComments(false);  
+        // .setAttributeComments(false)=> DESACTIVE L'INSERTION DES COMMENTAIRES DANS L'AST. 
+        //Sinon risque de tomber dans boucle infini et pb de memoire
         config.setSymbolResolver(  symbolSolver);
 
         

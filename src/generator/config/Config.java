@@ -172,14 +172,14 @@ public final class Config
     {
         if ( !PROPERTIES.containsKey("output"))
         {
-            throw new IOException("Le répertoire des classes de test n'est pas précisé dans config.properties !"); 
+            throw new IOException("Le répertoire des classes de test (paramètre output) n'est pas précisé dans config.properties !"); 
         } 
         else
         {
             File fileSrc = new File(get("output"));
             if (!fileSrc.exists() || !fileSrc.isDirectory())
             {
-                throw new IOException("Répertoire des classes de test incrorect ou inexistant !\n");
+                throw new IOException("Répertoire des classes de test (paramètre output) incrorect ou inexistant !\n");
             }
             else
             {
@@ -193,7 +193,7 @@ public final class Config
     {
         if ( !PROPERTIES.containsKey("sourceProject"))
         {
-            throw new IOException("Le répertoire racine du projet n'est pas précisé dans config.properties !\n"
+            throw new IOException("Le répertoire racine du projet n'est pas précisé dans config.properties (paramètre sourceProject) !\n"
                 +" Il doit être de la forme '/chemin/vers/projet/src/main/java/'."); 
            
         }
@@ -202,7 +202,7 @@ public final class Config
             File fileSrc = new File(get("sourceProject"));
             if (!fileSrc.exists() || !fileSrc.isDirectory())
             {
-                throw new IOException("Répertoire racine du projet incrorect ou inexistant !\n"
+                throw new IOException("Répertoire racine du projet (paramètre sourceProject) incorrect ou inexistant !\n"
                     +" Il doit être de la forme '/chemin/vers/projet/src/main/java/'.");
             }
             else
