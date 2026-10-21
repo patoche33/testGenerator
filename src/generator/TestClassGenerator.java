@@ -256,7 +256,6 @@ public class TestClassGenerator
         ClassInfo classInfo = classes.get(pkg + "." + className);
 
         System.out.println("Traitement de " + pkg + "." + className);
-
         /* Ecriture de la classe de test */
 
         TypeSpec.Builder testClass = TypeSpec.classBuilder(className + "Test")
@@ -265,16 +264,17 @@ public class TestClassGenerator
         MockitoGenerator.addMockitoFields(classInfo, testClass);
         
         /* initialisation */
-        MethodTestGenerator.init();
+        MethodTestGenerator methodTestGenerator = new MethodTestGenerator();
+        methodTestGenerator.init();
         
         /*ajoute la  methode setUp avec annotation BEFORE_EACH pour execution avant chaque test */
-        MethodTestGenerator.generateSetup(testClass);
+        methodTestGenerator.generateSetup(testClass);
         
         /* ajoute les methodes de test */
-        MethodTestGenerator.generateMethods(classes, classInfo, testClass);
+        methodTestGenerator.generateMethods(classes, classInfo, testClass);
         
         /*ajoute les mocks utilisés par les methodes de test */
-        MethodTestGenerator.getListMocks().forEach(mock -> MockitoGenerator.addMockitoField(testClass, mock, classInfo));
+        methodTestGenerator.getListMocks().forEach(mock -> MockitoGenerator.addMockitoField(testClass, mock, classInfo));
         
         /* ecrit la classe de test*/
         Builder fileBuilder = JavaFile.builder(
