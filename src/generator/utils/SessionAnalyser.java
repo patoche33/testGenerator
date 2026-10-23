@@ -1,4 +1,4 @@
-package generator;
+package generator.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ public class SessionAnalyser
     {
         List<SessionAttributeInfo> sessionAttributes = new ArrayList<>();
                 
-        for (VariableDeclarator var : methodInfo.getDeclaration().findAll(VariableDeclarator.class))
+        for (VariableDeclarator var : methodInfo.getVariables())
         {
             var.getInitializer().ifPresent(expr ->{
                 analyseExpression(expr, var, sessionAttributes);

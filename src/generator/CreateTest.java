@@ -33,14 +33,14 @@ public class CreateTest
         System.out.println("*** Début traitement ***");
         try
         {
-            String sourceProjet = Config.getSOURCEPROJECT();
+            String sourceClasses = Config.getROOTCLASSES();
             String out = Config.getOUTPUT();
             List<String> classes = Config.getCLASSES();
     
-            if (sourceProjet != null && out != null && !classes.isEmpty() )
+            if (sourceClasses != null && out != null && !classes.isEmpty() )
             {
                 /* Lister les classe set méthodes */
-                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceProjet);
+                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses);
         
                 /* générer les classes de test */
                 System.out.println("*** Création des classes de test ***");

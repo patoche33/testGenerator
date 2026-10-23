@@ -8,7 +8,12 @@ import java.util.Map;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 
@@ -31,7 +36,15 @@ public class MethodInfo {
     private boolean isPrivate;
     
     private boolean isStatic;
+    
+    private boolean isComplex;
    
+    private List<VariableDeclarator> variables = new ArrayList<>();
+    private List<AssignExpr> assignExpressions = new ArrayList<>();
+    private List<IfStmt> ifStmts = new ArrayList<>();
+    private List<ReturnStmt> returnStmts = new ArrayList<>();
+
+    private NodeList<ReferenceType> thrownExceptions;
     
     private Map<String, List<MethodCallInfo>> exceptions;
     
@@ -136,6 +149,66 @@ public class MethodInfo {
     public void setStatic(boolean isStatic)
     {
         this.isStatic = isStatic;
+    }
+
+    public List<VariableDeclarator> getVariables()
+    {
+        return variables;
+    }
+
+    public void setVariables(List<VariableDeclarator> variables)
+    {
+        this.variables = variables;
+    }
+
+    public List<AssignExpr> getAssignExpressions()
+    {
+        return assignExpressions;
+    }
+
+    public void setAssignExpressions(List<AssignExpr> assignExpressions)
+    {
+        this.assignExpressions = assignExpressions;
+    }
+
+    public List<IfStmt> getIfStmts()
+    {
+        return ifStmts;
+    }
+
+    public void setIfStmts(List<IfStmt> ifStmts)
+    {
+        this.ifStmts = ifStmts;
+    }
+
+    public NodeList<ReferenceType> getThrownExceptions()
+    {
+        return thrownExceptions;
+    }
+
+    public void setThrownExceptions(NodeList<ReferenceType> thrownExceptions)
+    {
+        this.thrownExceptions = thrownExceptions;
+    }
+
+    public List<ReturnStmt> getReturnStmts()
+    {
+        return returnStmts;
+    }
+
+    public void setReturnStmts(List<ReturnStmt> returnStmts)
+    {
+        this.returnStmts = returnStmts;
+    }
+
+    public boolean isComplex()
+    {
+        return isComplex;
+    }
+
+    public void setComplex(boolean isComplex)
+    {
+        this.isComplex = isComplex;
     }
     
 }

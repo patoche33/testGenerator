@@ -1,4 +1,4 @@
-package generator;
+package generator.bean;
 
 import java.util.ArrayList;
 import java.util.HashMap;

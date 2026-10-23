@@ -7,7 +7,19 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.DoStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.stmt.SwitchStmt;
+import com.github.javaparser.ast.stmt.ThrowStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -20,6 +32,8 @@ import generator.bean.ClassInfo;
 import generator.bean.FieldInfo;
 import generator.bean.MethodCallInfo;
 import generator.bean.MethodInfo;
+import generator.config.Config;
+import generator.utils.XmlInjection;
 
 import javax.lang.model.element.Modifier;
 
@@ -34,6 +48,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class TestClassGenerator
 {
@@ -41,25 +57,26 @@ public class TestClassGenerator
     private static JavaParser javaParser;
     
     private Map<String, ClassInfo> classes = new HashMap<>();
-
-    public TestClassGenerator(String sourceProject) throws IOException
+    
+    
+    public TestClassGenerator(String rootProject) throws IOException
     {
         
-        Path start = Paths.get(sourceProject);
+        Path start = Paths.get(rootProject);
 
         javaParser = ConfigSolver.getJavaParser();
         
-        Files.walk(start).filter(f -> f.toString().endsWith(".java"))
-            .forEach(f -> {
-                try
-                {
-                    parse(f);
-                }
-                catch (IOException e)
-                {
-                }
-            });
-
+        // Utilisation d'un try-with-resources pour fermer le flux de fichiers proprement
+        try (Stream<Path> stream = Files.walk(start)) {
+            stream.filter(f -> f.toString().endsWith(".java"))
+                  .forEach(f -> {
+                      try {
+                          parse(f);
+                      } catch (Exception e) {
+                          // Log 
+                      }
+                  });
+        }
     }
 
     /*
@@ -67,8 +84,7 @@ public class TestClassGenerator
      */
     private void parse(Path file) throws IOException
     {
-       
-    
+        
         
         javaParser.parse(file).getResult().ifPresent(cu ->  {
             try
@@ -86,11 +102,7 @@ public class TestClassGenerator
                 classInfo.setQualifiedName(pkg + "." + className);
                 classInfo.setFile(file);
                 
-              //  if (clazz.getNameAsString().contains("HistorisationWebService"))
-              //  { System.out.println("OUUUUUUUU=>" + clazz.getNameAsString()+ ">>>>" +classInfo.getQualifiedName());
-
-              //  }
-                
+             
                 for (ImportDeclaration imp : cu.getImports())
                 {
                     String qualifiedName = imp.getNameAsString();
@@ -108,7 +120,7 @@ public class TestClassGenerator
                     methodInfo.setName(method.getNameAsString());
                     methodInfo.setReturnType(method.getType());
                     // System.out.println("Declaration methode: "+ method.getTypeAsString()+":::"+method.getType());
-                    methodInfo.setDeclaration(method);
+                    //methodInfo.setDeclaration(method);
                     //methodInfo.setCalls(method.findAll(MethodCallExpr.class));
                     methodInfo.setPrivate(method.isPrivate());
                     methodInfo.setStatic(method.isStatic());
@@ -116,6 +128,36 @@ public class TestClassGenerator
                     if (method.getBody().isPresent()) {
                         methodInfo.setBody(method.getBody().get().toString());
                     }
+                    
+                    methodInfo.setVariables(method.findAll(VariableDeclarator.class));
+                    methodInfo.setAssignExpressions(method.findAll(AssignExpr.class));
+                    methodInfo.setThrownExceptions(method.getThrownExceptions());
+                    methodInfo.setIfStmts(method.findAll(IfStmt.class));
+                    methodInfo.setReturnStmts(method.findAll(ReturnStmt.class));
+                    methodInfo.setComplex(isMethodComplex(method));
+                    
+                    Map<String, MethodCallInfo> mapCalls = new HashMap<>();
+                    method.findAll(MethodCallExpr.class).forEach(methodCall -> {
+                        try
+                        {
+                            // cretion d'un nouveau MethoCallInfo
+                            MethodCallInfo methodCallInfo = new MethodCallInfo();
+                            // Résolution du symbole de l'appel
+                            ResolvedMethodDeclaration resolved = methodCall.resolve();
+                            methodCallInfo.setResolvedMethodDeclaration(resolved);
+                            methodCallInfo.setMethodCallExpr(methodCall);
+                          
+                            mapCalls.put(resolved.getSignature(), methodCallInfo);
+                            // System.out.println("-> Appel trouvé vers : " + resolved.getQualifiedName());
+                        }
+                        catch (Exception e)
+                        {
+                            System.err
+                                .println("Impossible de résoudre l'appel : " + methodCall.getNameAsString() + " (" + e.getMessage() + ")");
+                        }
+                    });
+                    methodInfo.setCalls(mapCalls);
+                                      
                     
                    // methodInfo.setSignature(method.getSignature().asString());
                     methodInfo.setSignature(method.getSignature().asString());
@@ -157,88 +199,6 @@ public class TestClassGenerator
          });
         
         
-        
-        
-        
-        
-        /*
-        CompilationUnit cu = StaticJavaParser.parse(file);
-       
-
-        try
-        {
-            ClassOrInterfaceDeclaration clazz = cu.findFirst(ClassOrInterfaceDeclaration.class)
-                .orElseThrow(() -> new FileClassException());
-
-            if (clazz == null)
-                return;
-            ClassInfo classInfo = new ClassInfo();
-            String pkg = cu.getPackageDeclaration().map(p -> p.getNameAsString()).orElse("");
-            String className = clazz.getNameAsString();
-            classInfo.setPackageName(pkg);
-            classInfo.setClassName(className);
-            classInfo.setQualifiedName(pkg + "." + className);
-            classInfo.setFile(file);
-            
-          //  if (clazz.getNameAsString().contains("HistorisationWebService"))
-          //  { System.out.println("OUUUUUUUU=>" + clazz.getNameAsString()+ ">>>>" +classInfo.getQualifiedName());
-
-          //  }
-            
-            for (ImportDeclaration imp : cu.getImports())
-            {
-                String qualifiedName = imp.getNameAsString();
-                String simpleName = imp.getName().getIdentifier();
-                classInfo.getImports().put(simpleName, qualifiedName);
-            }
-
-           
-            
-            for (MethodDeclaration method : clazz.getMethods())
-            {
-                MethodInfo methodInfo = new MethodInfo();
-                methodInfo.setName(method.getNameAsString());
-                methodInfo.setReturnType(method.getType());
-                // System.out.println("Declaration methode: "+ method.getTypeAsString()+":::"+method.getType());
-                methodInfo.setDeclaration(method);
-                //methodInfo.setCalls(method.findAll(MethodCallExpr.class));
-                methodInfo.setPrivate(method.isPrivate());
-                methodInfo.setParameters(method.getParameters());
-                if (method.getBody().isPresent()) {
-                    methodInfo.setBody(method.getBody().get().toString());
-                }
-                
-                methodInfo.setSignature(method.getSignature().asString());
-        
-                               
-                // la clé de la map est la signature car possibilité de redefinition de methodes 
-                classInfo.getMethods().put(method.getSignature().asString(), methodInfo);
-            }
-            
-            //if (clazz.getNameAsString().contains("HistorisationWebService"))
-            //{ System.out.println("2222=>" + clazz.getNameAsString()+ ">>>>" +classInfo.getQualifiedName());
-
-            //}
-            
-            clazz.getFields().forEach(field -> {
-                FieldInfo fieldInfo = new FieldInfo();
-                fieldInfo.setType(field.getElementType().asString());
-                fieldInfo.setName(field.getVariable(0).getNameAsString());
-
-                field.getAnnotations().forEach(anno -> fieldInfo.getAnnotations().add(anno.toString()));
-                classInfo.getFields().put(fieldInfo.getName(), fieldInfo);
-
-            });
-           
-            classes.put(classInfo.getQualifiedName(), classInfo);
-
-        }
-        catch (Exception e)
-        {
-            System.out.println("File " + file + " :" + e.getMessage());
-        }
-
-         */
     }
 
     public void generate(File sourceFile, Path output) throws IOException
@@ -297,6 +257,52 @@ public class TestClassGenerator
         fileBuilder.build()
             .writeTo(output);
 
+    }
+    
+    /**
+     * Détermine si un getter ou setter contient de la logique métier ou des règles complexes.
+     * 
+     * @param method La déclaration de la méthode à analyser.
+     * @return true si la méthode est complexe, false si elle est simple (ou vide).
+     */
+    private static boolean isMethodComplex(MethodDeclaration method) {
+        // Si la méthode n'a pas de corps (ex: interface, méthode abstraite), elle n'est pas complexe
+        if (method.getBody().isEmpty()) {
+            return false;
+        }
+
+        BlockStmt body = method.getBody().get();
+
+        //Plus d'une seule instruction de base = Logique ou effets de bord
+        if (body.getStatements().size() > 1) {
+            return true;
+        }
+
+        //Présence de structures conditionnelles (if, switch, guard clauses avec throw)
+        boolean contientConditions = !body.findAll(IfStmt.class).isEmpty() 
+                || !body.findAll(SwitchStmt.class).isEmpty()
+                || !body.findAll(ThrowStmt.class).isEmpty();
+        if (contientConditions) {
+            return true;
+        }
+
+        // 3. Présence de boucles (for, foreach, while, do-while)
+        boolean contientBoucles = !body.findAll(ForStmt.class).isEmpty() 
+                || !body.findAll(ForEachStmt.class).isEmpty() 
+                || !body.findAll(WhileStmt.class).isEmpty()
+                || !body.findAll(DoStmt.class).isEmpty();
+        if (contientBoucles) {
+            return true;
+        }
+
+        // 4. Présence d'opérateurs ternaires (ex: return (val != null) ? val : "default";)
+        boolean contientTernaire = !body.findAll(ConditionalExpr.class).isEmpty();
+        if (contientTernaire) {
+            return true;
+        }
+
+        // Si aucun critère de complexité n'est détecté, la méthode est considérée comme simple
+        return false;
     }
 
 }

@@ -17,18 +17,22 @@ import java.util.stream.Stream;
 
 public final class Config
 {
-    
-    private static  Properties PROPERTIES = new Properties();
-    
+       private static Properties PROPERTIES = new Properties();
+
     private static List<String> SOURCEDEPENDENCIES = new ArrayList<>();
-    
-    private static String SOURCEPROJECT;
-    
+
+    private static String ROOTPROJECT;
+
+    private static String ROOTCLASSES;
+
     private static String OUTPUT;
     
-    private static  List<String> CLASSES = new ArrayList<>();
-    
-    static {
+    private static String MAVEN;
+
+    private static List<String> CLASSES = new ArrayList<>();
+
+    static
+    {
         try
         {
             File file = new File("config.properties");
@@ -37,35 +41,38 @@ public final class Config
                 throw new IOException("Fichier config.properties inexistant");
 
             }
-           
-            System.out.println("Lecture du fichier config.properties!"); 
-            
+
+            System.out.println("Analyse du fichier config.properties!");
+
             FileInputStream fileInput = new FileInputStream("config.properties");
             PROPERTIES.load(fileInput);
-            
+
+            loadROOTPROJECT();
+
             loadSourceDependencies();
             
-            loadSourceProject();
-            
+            loadMaven();
+
             loadOutput();
-            
+
             loadClasses();
             
-            
-                
+           
+
         }
         catch (IOException ex)
         {
-            System.out.println(ex.getMessage()); 
-           // ex.printStackTrace();
+            System.out.println(ex.getMessage());
+            // ex.printStackTrace();
         }
-    }   
-    
-    
+    }
+
     public static List<String> getCLASSES()
     {
         return CLASSES;
     }
+
+   
 
     public static void setCLASSES(List<String> cLASSES)
     {
@@ -77,17 +84,17 @@ public final class Config
         return SOURCEDEPENDENCIES;
     }
 
-    public static String getSOURCEPROJECT()
+    public static String getROOTPROJECT()
     {
-        return SOURCEPROJECT;
+        return ROOTPROJECT;
     }
 
-    public static void setSOURCEPROJECT(String sOURCEPROJECT)
+    public static void setROOTPROJECT(String rootProject)
     {
-        SOURCEPROJECT = sOURCEPROJECT;
+        ROOTPROJECT = rootProject;
     }
 
-   public static String getOUTPUT()
+    public static String getOUTPUT()
     {
         return OUTPUT;
     }
@@ -97,85 +104,109 @@ public final class Config
         OUTPUT = oUTPUT;
     }
 
-    public static String get(String cle) {
+    public static String get(String cle)
+    {
         return PROPERTIES.getProperty(cle);
     }
-    
+
+    public static String getROOTCLASSES()
+    {
+        return ROOTCLASSES;
+    }
+
+    public static void setROOTCLASSES(String rOOTCLASSES)
+    {
+        ROOTCLASSES = rOOTCLASSES;
+    }
+
+    public static String getMAVEN()
+    {
+        return MAVEN;
+    }
+
+    public static void setMAVEN(String mAVEN)
+    {
+        MAVEN = mAVEN;
+    }
+
     private static void loadClasses() throws IOException
     {
-        if ( !PROPERTIES.containsKey("classes") && !PROPERTIES.containsKey("directories"))
+
+        if (!PROPERTIES.containsKey("classes") && !PROPERTIES.containsKey("directories"))
         {
             throw new IOException("Aucune classes à tester. veuillez préciser au moins une classe avec le paramètre 'classes=...'\n"
                 + " ou avec le paramètre 'directories='...'"
                 + " (exemple: classes=fr/gouv/finances/monprojet/utils/MailUtils.java,fr/gouv/finances/monprojet/webservice/impl/TableauDeBordWebServiceImpl.java\n"
-                + " directories=fr/gouv/finances/monprojet/webdao/utils/,fr/gouv/finances/monprojet/webservice/)"); 
-        } 
-        
-        if ( PROPERTIES.containsKey("classes"))
+                + " directories=fr/gouv/finances/monprojet/webdao/utils/,fr/gouv/finances/monprojet/webservice/)");
+        }
+
+        if (PROPERTIES.containsKey("classes"))
         {
+            
             String[] listClasses = get("classes").trim().split(",");
             Set<String> set = Stream.of(listClasses).collect(Collectors.toSet());
             if (set.size() > 0)
             {
-              for(String classe: set)
-              {    
-                  if ( ! getCLASSES().contains(classe))
-                  {
-                      File fileSrc = new File(getSOURCEPROJECT() + classe);
-                      if (! fileSrc.exists() || ! fileSrc.isFile())
-                      {
-                          System.out.println("Classe " + getSOURCEPROJECT() + classe + " inexistante.");
-                      }
-                      else
-                      {
-                          getCLASSES().add(getSOURCEPROJECT() + classe);
-                      }
-                  }
-                 
-               }
-            } 
-         }
-        
-        if ( PROPERTIES.containsKey("directories"))
+                for (String classe : set)
+                {
+                    if (!getCLASSES().contains(classe))
+                    {
+                        File fileSrc = new File(getROOTCLASSES() + classe);
+                        if (!fileSrc.exists() || !fileSrc.isFile())
+                        {
+                            System.out.println("Classe " + getROOTCLASSES() + classe + " inexistante.");
+                        }
+                        else
+                        {
+                            getCLASSES().add(getROOTCLASSES() + classe);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        if (PROPERTIES.containsKey("directories"))
         {
-            String[] listDir= get("directories").trim().split(",");
+            String[] listDir = get("directories").trim().split(",");
             Set<String> set = Stream.of(listDir).collect(Collectors.toSet());
             if (set.size() > 0)
             {
-              for(String dir: set)
-              {    
-                   File dirSrc = new File(getSOURCEPROJECT() + dir);
-                   if (! dirSrc.exists() || ! dirSrc.isDirectory())
-                   {
-                       System.out.println("Répertoire " + getSOURCEPROJECT() + dir + " inexistant.");
-                   }
-                   else
-                   {
-                       System.out.println("Recherche des classes dans '" + getSOURCEPROJECT() + dir + "'" );
-                       Path start = Paths.get( getSOURCEPROJECT() + dir);
-                       Files.walk(start).filter(f -> f.toString().endsWith(".java"))
-                       .forEach(f -> {
-                           if ( ! getCLASSES().contains(f.toString()))
-                           {
-                               getCLASSES().add(f.toString());
-                           }
-                           
-                       });
-                       
-                   }
-               }
-            } 
-         }
+                for (String dir : set)
+                {
+                    File dirSrc = new File(getROOTCLASSES() + dir);
+                    if (!dirSrc.exists() || !dirSrc.isDirectory())
+                    {
+                        System.out.println("Répertoire " + getROOTCLASSES() + dir + " inexistant.");
+                    }
+                    else
+                    {
+                        System.out.println("   -> Recherche des classes dans '" + getROOTCLASSES() + dir + "'");
+                        Path start = Paths.get(getROOTCLASSES() + dir);
+                        Files.walk(start).filter(f -> f.toString().endsWith(".java"))
+                            .forEach(f -> {
+                                if (!getCLASSES().contains(f.toString()))
+                                {
+                                    getCLASSES().add(f.toString());
+                                }
+
+                            });
+
+                    }
+                }
+            }
+        }
     }
-    
+
     private static void loadOutput() throws IOException
     {
-        if ( !PROPERTIES.containsKey("output"))
+        if (!PROPERTIES.containsKey("output"))
         {
-            throw new IOException("Le répertoire des classes de test (paramètre output) n'est pas précisé dans config.properties !"); 
-        } 
+            throw new IOException("Le répertoire des classes de test (paramètre output) n'est pas précisé dans config.properties !");
+        }
         else
         {
+            // chemin racine du projet + /src/main/test
             File fileSrc = new File(get("output"));
             if (!fileSrc.exists() || !fileSrc.isDirectory())
             {
@@ -183,83 +214,125 @@ public final class Config
             }
             else
             {
-                System.out.println("Répertoire des classes de test: " + get("output")); 
+                System.out.println("   -> Répertoire des classes de test: " + get("output") + " Ok.");
                 setOUTPUT(get("output"));
-            }          
-         }
+            }
+        }
     }
-    
-    private static void loadSourceProject() throws IOException
+
+    private static void loadROOTPROJECT() throws IOException
     {
-        if ( !PROPERTIES.containsKey("sourceProject"))
+        if (!PROPERTIES.containsKey("project.root"))
         {
-            throw new IOException("Le répertoire racine du projet n'est pas précisé dans config.properties (paramètre sourceProject) !\n"
-                +" Il doit être de la forme '/chemin/vers/projet/src/main/java/'."); 
-           
+            throw new IOException("    -> Le répertoire racine du projet n'est pas précisé dans config.properties (paramètre project.root) !\n"
+                + " Il doit être de la forme '/chemin/vers/projet/.");
+
+        }
+
+        if (!PROPERTIES.containsKey("project.classes"))
+        {
+            throw new IOException(
+                "    -> Le répertoire des classe du projet n'est pas précisé dans config.properties (paramètre project.classes) !\n"
+                    + " Il doit être de la forme '/chemin/vers/projet/src/main/java.");
+
+        }
+
+        // chemin racine du projet 
+        File fileSrc = new File(get("project.root") );
+        if (!fileSrc.exists() || !fileSrc.isDirectory())
+        {
+            throw new IOException("    ->Répertoire racine du projet (paramètre project.root) incorrect ou inexistant !\n"
+                + " Il doit être de la forme '/chemin/vers/projet'.");
         }
         else
         {
-            File fileSrc = new File(get("sourceProject"));
-            if (!fileSrc.exists() || !fileSrc.isDirectory())
-            {
-                throw new IOException("Répertoire racine du projet (paramètre sourceProject) incorrect ou inexistant !\n"
-                    +" Il doit être de la forme '/chemin/vers/projet/src/main/java/'.");
-            }
-            else
-            {
-                System.out.println("Répertoire racine du projet: " + get("sourceProject")); 
-                setSOURCEPROJECT( get("sourceProject"));
-            }
-         
+            System.out.println("    -> Répertoire racine du projet: " + get("project.root") + " Ok.");
+            setROOTPROJECT(get("project.root"));
         }
+        
+       // chemin racine des classes 
+         fileSrc = new File(get("project.classes") );
+        if (!fileSrc.exists() || !fileSrc.isDirectory())
+        {
+            throw new IOException("    -> Répertoire racine des classes (paramètre project.classes) incorrect ou inexistant !\n"
+                + " Il doit être de la forme '/chemin/vers/projet/src/main/java'.");
+        }
+        else
+        {
+            System.out.println("    -> Répertoire racine des classes: " + get("project.classes") + " Ok.");
+            setROOTCLASSES(get("project.classes"));
+        }
+
     }
-    
+
     private static void loadSourceDependencies()
     {
-        if ( !PROPERTIES.containsKey("sourceDependencies"))
+        if (!PROPERTIES.containsKey("sourceDependencies"))
         {
-            System.out.println("ATTENTION!  Répertoire des dépendances (maven ou autres) non précisé dans config.properties."
-                + "S'il existe des dépendances, veuillez le préciser."); 
+            System.out.println("    -> ATTENTION!  Répertoire des dépendances  non précisé dans config.properties."
+                + "S'il existe des dépendances, veuillez le préciser.");
         }
         else
         {
-           
+
             String[] listSource = get("sourceDependencies").trim().split(",");
             if (listSource.length > 0)
             {
-               boolean notDir =Arrays.stream(listSource).allMatch(source->{
-                   File fileSrc = new File(source);
-                   return (!fileSrc.exists() || !fileSrc.isDirectory());
-               });
-               if (notDir)
-               {
-                   System.out.println("ATTENTION!  Répertoire des dépendances (maven ou autres) incorrect ou inexistant."
-                       + "S'il existe des dépendances, veuillez le préciser.");
-               }
-               else
-               {
-                    System.out.println("Répertoire des dépendances (maven ou autres): ");
-                    for (String source: listSource) {
+                boolean notDir = Arrays.stream(listSource).allMatch(source -> {
+                    File fileSrc = new File(source);
+                    return (!fileSrc.exists() || !fileSrc.isDirectory());
+                });
+                if (notDir)
+                {
+                    System.out.println("    ->ATTENTION!  Répertoire des dépendances incorrect ou inexistant."
+                        + "S'il existe des dépendances, veuillez le préciser.");
+                }
+                else
+                {
+                    System.out.println("    -> Répertoire des dépendances : ");
+                    for (String source : listSource)
+                    {
                         File fileSrc = new File(source);
                         if (!fileSrc.exists() || !fileSrc.isDirectory())
                         {
-                            System.out.println("    " + source + " incorrect.");
+                            System.out.println("    - " + source + " incorrect.");
                         }
                         else
                         {
-                            System.out.println("    " + source + " ok.");
+                            System.out.println("    - " + source + " ok.");
                             getSourceDependencies().add(source);
                         }
-                       
-                    } 
-               }     
+
+                    }
+                }
             }
             else
             {
-                System.out.println("ATTENTION! Aucun répertoire des dépendances (maven ou autres) présent dans config.properties.\n"
-                    + "S'il existe des dépendances, veuillez le préciser."); 
+                System.out.println("    -> ATTENTION! Aucun répertoire des dépendances présent dans config.properties.\n"
+                    + "S'il existe des dépendances, veuillez le préciser.");
             }
-           
+
         }
     }
+    
+   
+    private static void loadMaven()
+    {
+        if (PROPERTIES.containsKey("maven"))
+        {
+            File fileSrc = new File(get("maven"));
+            if (!fileSrc.exists() || !fileSrc.isDirectory())
+            {
+                System.out.println("    -> Répertoire des dépendances maven (.m2) " + get("maven") + " incorrecte.");
+            }
+            else
+            {
+                System.out.println("     -> Répertoire des dépendances maven"  +  get("maven") + " ok.");
+                setMAVEN(get("maven"));
+            }
+           
+  
+        }
+    }
+
 }
