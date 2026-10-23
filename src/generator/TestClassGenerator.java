@@ -57,10 +57,23 @@ public class TestClassGenerator
     private static JavaParser javaParser;
     
     private Map<String, ClassInfo> classes = new HashMap<>();
+    private Map<String, List<String>> xmlProperties = new HashMap<>();
     
-    
-    public TestClassGenerator(String rootProject) throws IOException
+    public TestClassGenerator(String rootProject, String xml) throws IOException
     {
+        
+        try
+        {
+           if (xml != null)
+           {
+              xmlProperties = XmlInjection.extraireNomsProprietesDepuisXml(xml);
+           } 
+        }
+        catch (Exception e)
+        {
+            System.err
+            .println("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
+        }
         
         Path start = Paths.get(rootProject);
 
@@ -102,7 +115,9 @@ public class TestClassGenerator
                 classInfo.setQualifiedName(pkg + "." + className);
                 classInfo.setFile(file);
                 
-             
+                
+                
+                
                 for (ImportDeclaration imp : cu.getImports())
                 {
                     String qualifiedName = imp.getNameAsString();
@@ -110,7 +125,10 @@ public class TestClassGenerator
                     classInfo.getImports().put(simpleName, qualifiedName);
                 }
 
-               
+               if (className.equals("RegieDaoImpl"))
+               {
+                   System.out.println("RegieDaoImpl");
+               }
                 
                 for (MethodDeclaration method : clazz.getMethods())
                 {
@@ -176,11 +194,26 @@ public class TestClassGenerator
                 //{ System.out.println("2222=>" + clazz.getNameAsString()+ ">>>>" +classInfo.getQualifiedName());
 
                 //}
+                if (className.equals("RegieServiceImpl"))
+                {
+                    System.out.println("RegieServiceImpl");
+                    System.out.println(clazz.getFullyQualifiedName().get());
+                } 
+                List<String> props = new ArrayList<String>();
+                if (xmlProperties.containsKey(clazz.getFullyQualifiedName().get())) {
+                    props.addAll(xmlProperties.get(clazz.getFullyQualifiedName().get()));
+                }
                 
                 clazz.getFields().forEach(field -> {
                     FieldInfo fieldInfo = new FieldInfo();
                     fieldInfo.setType(field.getElementType().asString());
                     fieldInfo.setName(field.getVariable(0).getNameAsString());
+                    fieldInfo.setXmlInject(false);
+                    if (props.contains(field.getVariable(0).getNameAsString()))
+                    {
+                        fieldInfo.setXmlInject(true);
+                    }
+                    
 
                     field.getAnnotations().forEach(anno -> fieldInfo.getAnnotations().add(anno.toString()));
                     classInfo.getFields().put(fieldInfo.getName(), fieldInfo);

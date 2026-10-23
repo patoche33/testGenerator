@@ -27,7 +27,7 @@ public final class Config
 
     private static String OUTPUT;
     
-    private static String MAVEN;
+    private static String XMLINJECTION;
 
     private static List<String> CLASSES = new ArrayList<>();
 
@@ -51,7 +51,7 @@ public final class Config
 
             loadSourceDependencies();
             
-            loadMaven();
+            loadXmlInjection();
 
             loadOutput();
 
@@ -119,15 +119,21 @@ public final class Config
         ROOTCLASSES = rOOTCLASSES;
     }
 
-    public static String getMAVEN()
+   
+
+    public static String getXMLINJECTION()
     {
-        return MAVEN;
+        return XMLINJECTION;
     }
 
-    public static void setMAVEN(String mAVEN)
+
+
+    public static void setXMLINJECTION(String xMLINJECTION)
     {
-        MAVEN = mAVEN;
+        XMLINJECTION = xMLINJECTION;
     }
+
+
 
     private static void loadClasses() throws IOException
     {
@@ -316,19 +322,19 @@ public final class Config
     }
     
    
-    private static void loadMaven()
+    private static void loadXmlInjection()
     {
-        if (PROPERTIES.containsKey("maven"))
+        if (PROPERTIES.containsKey("project.xml"))
         {
-            File fileSrc = new File(get("maven"));
-            if (!fileSrc.exists() || !fileSrc.isDirectory())
+            File fileSrc = new File(get("project.xml"));
+            if (!fileSrc.exists() || !fileSrc.isFile())
             {
-                System.out.println("    -> Répertoire des dépendances maven (.m2) " + get("maven") + " incorrecte.");
+                System.out.println("    -> Fichier applicationContext-service.xml non trouvé");
             }
             else
             {
-                System.out.println("     -> Répertoire des dépendances maven"  +  get("maven") + " ok.");
-                setMAVEN(get("maven"));
+                System.out.println("     -> Fichier applicationContext-service.xml ok.");
+                setXMLINJECTION(get("project.xml"));
             }
            
   

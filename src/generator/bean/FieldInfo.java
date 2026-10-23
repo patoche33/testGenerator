@@ -13,6 +13,8 @@ public class FieldInfo
     
     private List<String> annotations = new ArrayList<String>();
 
+    private Boolean xmlInject;
+    
     public String getName()
     {
         return name;
@@ -36,6 +38,16 @@ public class FieldInfo
     public List<String> getAnnotations()
     {
         return annotations;
+    }
+
+    public Boolean getXmlInject()
+    {
+        return xmlInject;
+    }
+
+    public void setXmlInject(Boolean xmlInject)
+    {
+        this.xmlInject = xmlInject;
     }
     
     

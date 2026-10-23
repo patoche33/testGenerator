@@ -223,12 +223,11 @@ public class MethodTestGenerator
      */
     public void generateMethod(MethodInfo methodInfo, String testName, Boolean surcharge, String exception)
     {
-        if (// methodInfo.getName().equals("sendMail") ||
-            methodInfo.getName().equals("getLocalisationResourceBundle"))
-            {
-                System.out.println("HERE Method==>" + methodInfo.getName());
-            }
-
+        
+if (methodInfo.getName().equals("creerLaRegieEtOuLePaysEtOuLaVilleEtOuLePosteEtOuLeGroupe"))
+{
+    System.out.println("METHODE==>" + methodInfo.getName());
+}
         /* nom de la méthode */
         Builder methodeBuilder = MethodSpec.methodBuilder(testName);
         /*
@@ -327,11 +326,17 @@ public class MethodTestGenerator
 
                 /*
                  * recherche de la classe contenant la méthode appelée Si elle est trouvée on vérifie que la classe en import est en
-                 * Autowired car on ne génère le "when" que pour les méthodes dont la classe est en autowired dans la classe de test
+                 * Autowired ou fait parti des propriétés (d'injection spring) du fichier spring applicationContext-service.xml 
+                 * car on ne génère le "when" que pour les méthodes dont la classe est en autowired dans la classe de test
                  */
 
-                if (classes.get(fqnMock) != null
-                    && classInfo.getFields().get(mock).getAnnotations().contains("@Autowired"))
+                if (classes.get(fqnMock) != null  && 
+                            ( classInfo.getFields().get(mock).getAnnotations().contains("@Autowired") ||
+                                classInfo.getFields().get(mock).getXmlInject()
+                            
+                                )
+                    
+                    )
                 {
 
                     // la methode appelée est de type void . Gestion du doNoting et verify

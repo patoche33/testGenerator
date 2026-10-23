@@ -36,11 +36,12 @@ public class CreateTest
             String sourceClasses = Config.getROOTCLASSES();
             String out = Config.getOUTPUT();
             List<String> classes = Config.getCLASSES();
+            String xml = Config.getXMLINJECTION();
     
             if (sourceClasses != null && out != null && !classes.isEmpty() )
             {
-                /* Lister les classe set méthodes */
-                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses);
+                /* Lister les classes et méthodes */
+                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses, xml);
         
                 /* générer les classes de test */
                 System.out.println("*** Création des classes de test ***");
