@@ -303,7 +303,11 @@ if (methodInfo.getName().equals("creerLaRegieEtOuLePaysEtOuLaVilleEtOuLePosteEtO
 
             String mock = call.getScope().get().toString(); // nom de l'instance de classe
             String methodName = call.getNameAsString(); // nom de la méthode à mocker
-
+if (methodInfo.getName().equals("creerLaRegieEtOuLePaysEtOuLaVilleEtOuLePosteEtOuLeGroupe") &&
+    methodName.equals("saveObject"))
+{
+    System.out.println("METHODE==>" + methodInfo.getName() + " et Call==>" + methodName);
+}
             /*
              * Génération du when ou doNothing si type void
              */

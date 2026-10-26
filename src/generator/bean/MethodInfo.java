@@ -38,6 +38,8 @@ public class MethodInfo {
     private boolean isStatic;
     
     private boolean isComplex;
+    
+    private boolean isInherited;
    
     private List<VariableDeclarator> variables = new ArrayList<>();
     private List<AssignExpr> assignExpressions = new ArrayList<>();
@@ -209,6 +211,16 @@ public class MethodInfo {
     public void setComplex(boolean isComplex)
     {
         this.isComplex = isComplex;
+    }
+
+    public boolean isInherited()
+    {
+        return isInherited;
+    }
+
+    public void setInherited(boolean isInherited)
+    {
+        this.isInherited = isInherited;
     }
     
 }
