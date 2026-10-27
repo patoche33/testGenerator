@@ -162,8 +162,17 @@ public class MethodTestGenerator
          */
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
-            //pas de tests pour methode telle que getter et setter (methode simple)
-            if (! methodInfo.isComplex())
+           
+
+            if (classInfo.getClassName().equals("EvenementServiceImpl")
+                && methodInfo.getName().equals("creerEvenement"))
+            {
+                System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
+                    " et METHODE ===>" + methodInfo.getName());
+            }
+            
+            //pas de tests pour methode telle que getter et setter  simple (non complexe)
+            if (methodInfo.isGetterOrSetter() && ! methodInfo.isComplex())
             {
                 continue;
             }
@@ -224,10 +233,6 @@ public class MethodTestGenerator
     public void generateMethod(MethodInfo methodInfo, String testName, Boolean surcharge, String exception)
     {
         
-if (methodInfo.getName().equals("creerLaRegieEtOuLePaysEtOuLaVilleEtOuLePosteEtOuLeGroupe"))
-{
-    System.out.println("METHODE==>" + methodInfo.getName());
-}
         /* nom de la méthode */
         Builder methodeBuilder = MethodSpec.methodBuilder(testName);
         /*
@@ -303,11 +308,7 @@ if (methodInfo.getName().equals("creerLaRegieEtOuLePaysEtOuLaVilleEtOuLePosteEtO
 
             String mock = call.getScope().get().toString(); // nom de l'instance de classe
             String methodName = call.getNameAsString(); // nom de la méthode à mocker
-if (methodInfo.getName().equals("creerLaRegieEtOuLePaysEtOuLaVilleEtOuLePosteEtOuLeGroupe") &&
-    methodName.equals("saveObject"))
-{
-    System.out.println("METHODE==>" + methodInfo.getName() + " et Call==>" + methodName);
-}
+
             /*
              * Génération du when ou doNothing si type void
              */

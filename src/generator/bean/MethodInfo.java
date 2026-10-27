@@ -25,8 +25,6 @@ public class MethodInfo {
     
     private String signature;
 
-    private MethodDeclaration declaration;
-    
     private String body;
     
     private  Map<String,MethodCallInfo> calls;
@@ -38,6 +36,8 @@ public class MethodInfo {
     private boolean isStatic;
     
     private boolean isComplex;
+    
+    private boolean isGetterOrSetter;
     
     private boolean isInherited;
    
@@ -53,9 +53,10 @@ public class MethodInfo {
    
     public MethodInfo()
     {
-       
+        body = "";
+        calls = new HashMap<String,MethodCallInfo>();
         exceptions = new HashMap<String,  List<MethodCallInfo>>();
-        
+        thrownExceptions = new NodeList<ReferenceType>();
     }
 
     public String getSignature()
@@ -103,14 +104,6 @@ public class MethodInfo {
 
     public void setReturnType(Type returnType) {
         this.returnType = returnType;
-    }
-
-    public MethodDeclaration getDeclaration() {
-        return declaration;
-    }
-
-    public void setDeclaration(MethodDeclaration declaration) {
-        this.declaration = declaration;
     }
 
     public  Map<String,MethodCallInfo> getCalls()
@@ -221,6 +214,16 @@ public class MethodInfo {
     public void setInherited(boolean isInherited)
     {
         this.isInherited = isInherited;
+    }
+
+    public boolean isGetterOrSetter()
+    {
+        return isGetterOrSetter;
+    }
+
+    public void setGetterOrSetter(boolean isGetterOrSetter)
+    {
+        this.isGetterOrSetter = isGetterOrSetter;
     }
     
 }

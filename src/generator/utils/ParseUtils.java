@@ -13,8 +13,18 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.DoStmt;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.SwitchStmt;
+import com.github.javaparser.ast.stmt.ThrowStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
@@ -22,6 +32,7 @@ import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
+import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 
 import generator.bean.ElementExpression;
 import generator.bean.MethodInfo;
@@ -31,7 +42,7 @@ public class ParseUtils
     
     /**
      * 
-     * Rechercher toutes es expression contenu dans une Binary expression
+     * Rechercher toutes les expression contenu dans une Binary expression
      * exemple avec la Binary expression : "Select * from " + table + " where id" = id
      * donne 4 expressions: "Select * from " , table , " where id" et id
      * @param expr
@@ -356,6 +367,296 @@ public class ParseUtils
         };
 
     }
+    
+    /**
+     * Détermine si un getter ou setter contient de la logique métier ou des règles complexes.
+     * 
+     * @param method La déclaration de la méthode à analyser.
+     * @return true si la méthode est complexe, false si elle est simple (ou vide).
+     */
+    public static boolean isMethodComplex(MethodDeclaration method)
+    {
+   
+        // Si la méthode n'a pas de corps (ex: interface, méthode abstraite), elle n'est pas complexe
+        if (method.getBody().isEmpty())
+        {
+            return false;
+        }
 
+        BlockStmt body = method.getBody().get();
 
+        // Plus d'une seule instruction de base = Logique ou effets de bord
+        if (body.getStatements().size() > 1)
+        {
+            return true;
+        }
+
+        // Présence de structures conditionnelles (if, switch, guard clauses avec throw)
+        boolean contientConditions = !body.findAll(IfStmt.class).isEmpty()
+            || !body.findAll(SwitchStmt.class).isEmpty()
+            || !body.findAll(ThrowStmt.class).isEmpty();
+        if (contientConditions)
+        {
+            return true;
+        }
+
+        // 3. Présence de boucles (for, foreach, while, do-while)
+        boolean contientBoucles = !body.findAll(ForStmt.class).isEmpty()
+            || !body.findAll(ForEachStmt.class).isEmpty()
+            || !body.findAll(WhileStmt.class).isEmpty()
+            || !body.findAll(DoStmt.class).isEmpty();
+        if (contientBoucles)
+        {
+            return true;
+        }
+
+        // 4. Présence d'opérateurs ternaires (ex: return (val != null) ? val : "default";)
+        boolean contientTernaire = !body.findAll(ConditionalExpr.class).isEmpty();
+        if (contientTernaire)
+        {
+            return true;
+        }
+
+        // Si aucun critère de complexité n'est détecté, la méthode est considérée comme simple
+        return false;
+    }
+
+    /**
+     * Détermine si un getter ou setter contient de la logique métier ou des règles complexes.
+     * Utilise ASt (pour les classes du projet) sinon si (classe d'un Jar) renvoie false
+     * @param method ResolvedMethodDeclaration  méthode à analyser.
+     * @return true si la méthode est complexe, false si elle est simple (ou vide).
+     */
+    public static boolean isMethodComplex(ResolvedMethodDeclaration resolvedMethod)
+    {
+        
+        
+        //Validation stricte du corps (uniquement si le code source AST est accessible)
+        Optional<com.github.javaparser.ast.Node> astNode = resolvedMethod.toAst();
+        if (astNode.isPresent() && astNode.get() instanceof MethodDeclaration) {
+            MethodDeclaration methodAST = (MethodDeclaration) astNode.get();
+            
+            if (methodAST.getBody().isEmpty()) return false;
+            BlockStmt body = methodAST.getBody().get();
+            
+            // Si la méthode n'a pas de corps (ex: interface, méthode abstraite), elle n'est pas complexe
+            if (body.isEmpty())
+            {
+                return false;
+            }
+         // Plus d'une seule instruction de base = Logique ou effets de bord
+            if (body.getStatements().size() > 1)
+            {
+                return true;
+            }
+            
+            // Présence de structures conditionnelles (if, switch, guard clauses avec throw)
+            boolean contientConditions = !body.findAll(IfStmt.class).isEmpty()
+                || !body.findAll(SwitchStmt.class).isEmpty()
+                || !body.findAll(ThrowStmt.class).isEmpty();
+            if (contientConditions)
+            {
+                return true;
+            }
+            
+            //Présence de boucles (for, foreach, while, do-while)
+            boolean contientBoucles = !body.findAll(ForStmt.class).isEmpty()
+                || !body.findAll(ForEachStmt.class).isEmpty()
+                || !body.findAll(WhileStmt.class).isEmpty()
+                || !body.findAll(DoStmt.class).isEmpty();
+            if (contientBoucles)
+            {
+                return true;
+            }
+            
+            //Présence d'opérateurs ternaires (ex: return (val != null) ? val : "default";)
+            boolean contientTernaire = !body.findAll(ConditionalExpr.class).isEmpty();
+            if (contientTernaire)
+            {
+                return true;
+            }
+            // Si aucun critère de complexité n'est détecté, la méthode est considérée comme simple
+            return false;
+        } 
+        else if (isFromJar(resolvedMethod))
+        {
+            return false;
+        }
+        return true;
+        
+      
+       
+    }
+    /**
+     * 
+     * La méthode est elle un Getter
+     *
+     * @param method MethodDeclaration
+     * @return
+     */
+    public static boolean isGetter(MethodDeclaration method) {
+        
+        String name = method.getNameAsString();
+        
+        //Un getter commence par "get" ou par "is" (si c'est un boolean)
+        boolean hasGetterName = name.startsWith("get") && name.length() > 3;
+        boolean hasBooleanGetterName = name.startsWith("is") && name.length() > 2 && 
+                (method.getType().asString().equals("boolean")|| method.getType().asString().equals("Boolean"));
+        
+        if (!hasGetterName && !hasBooleanGetterName) {
+            return false;
+        }
+        
+        // Un getter n'a pas de paramètre et retourne quelque chose (pas void)
+        if (method.getParameters().size() != 0 || method.getType().isVoidType()) {
+            return false;
+        }
+        
+        // Un getter doit avoir un corps avec exactement 1 instruction
+        if (method.getBody().isEmpty()) return false;
+        BlockStmt body = method.getBody().get();
+        if (body.getStatements().size() != 1) return false;
+        
+        //unique instruction doit être un 'return'
+        return body.getStatement(0).isReturnStmt();
+    }
+    
+    /**
+     * 
+     * La methode est elle un Setter
+     *
+     * @param method MethodDeclaration
+     * @return
+     */
+    public static boolean isSetter(MethodDeclaration method) {
+        String name = method.getNameAsString();
+
+        //Un setter commence par "set"
+        if (!name.startsWith("set") || name.length() <= 3) {
+            return false;
+        }
+        
+        //Un setter a exactement 1 paramètre et retourne généralement void
+        if (method.getParameters().size() != 1 || !method.getType().isVoidType()) {
+            return false;
+        }
+        
+        //Un setter avoir un corps avec exactement 1 instruction
+        if (method.getBody().isEmpty()) return false;
+        BlockStmt body = method.getBody().get();
+        if (body.getStatements().size() != 1) return false;
+        
+        //l'instruction doit être une expression d'assignation (ex: this.x = x;)
+        if (!body.getStatement(0).isExpressionStmt()) return false;
+        ExpressionStmt stmt = body.getStatement(0).asExpressionStmt();
+        
+        if (!stmt.getExpression().isAssignExpr()) return false;
+        AssignExpr assign = stmt.getExpression().asAssignExpr();
+        
+        // Vérifie que c'est une assignation simple (=)
+        return assign.getOperator() == AssignExpr.Operator.ASSIGN;
+    }
+    
+    /**
+     * 
+     * La methode est elle un Setter
+     *
+     * @param method ResolvedMethodDeclaration
+     * @return
+     */
+    public static boolean isSetter(ResolvedMethodDeclaration resolvedMethod) {
+        String name = resolvedMethod.getName();
+        ResolvedType returnType = resolvedMethod.getReturnType();
+        
+        //Un setter commence par "set"
+        if (!name.startsWith("set") || name.length() <= 3) {
+            return false;
+        }
+        
+        //Un setter a exactement 1 paramètre et retourne généralement void
+        if (resolvedMethod.getNumberOfParams() != 1 || !returnType.isVoid()) {
+            return false;
+        }
+        
+        //Validation stricte du corps (uniquement si le code source AST est accessible)
+        Optional<com.github.javaparser.ast.Node> astNode = resolvedMethod.toAst();
+        if (astNode.isPresent() && astNode.get() instanceof MethodDeclaration) {
+            MethodDeclaration methodAST = (MethodDeclaration) astNode.get();
+            
+            if (methodAST.getBody().isEmpty()) return false;
+            BlockStmt body = methodAST.getBody().get();
+            if (body.getStatements().size() != 1) return false;
+            
+           // L'instruction doit être une expression d'assignation (ex: this.x = x;)
+            if (!body.getStatement(0).isExpressionStmt()) return false;
+            ExpressionStmt stmt = body.getStatement(0).asExpressionStmt();
+           
+            if (!stmt.getExpression().isAssignExpr()) return false;
+            AssignExpr assign = stmt.getExpression().asAssignExpr();
+            
+            // Vérifie que c'est une assignation simple (=)
+            return assign.getOperator() == AssignExpr.Operator.ASSIGN;
+        } 
+         
+        return true;
+    }
+    
+    /**
+     * 
+     * La méthode est elle un Getter
+     *
+     * @param resolvedMethod ResolvedMethodDeclaration
+     * @return
+     */
+    public static boolean isGetter(ResolvedMethodDeclaration resolvedMethod) {
+        String name = resolvedMethod.getName();
+        ResolvedType returnType = resolvedMethod.getReturnType();
+        String returnTypeStr = returnType.describe();
+
+        // Un getter n'a jamais de paramètres et ne retourne pas void
+        if (resolvedMethod.getNumberOfParams() != 0 || returnType.isVoid()) {
+            return false;
+        }
+
+        //Un getter commence par "get" ou par "is" (si c'est un boolean)
+        boolean hasGetterName = name.startsWith("get") && name.length() > 3;
+       // Pour les booléens, accepte "is..." (ex: boolean ou java.lang.Boolean)
+        boolean isBoolean = returnTypeStr.equals("boolean") || returnTypeStr.equals("java.lang.Boolean");
+        boolean hasBooleanGetterName = name.startsWith("is") && name.length() > 2 && isBoolean;
+
+        if (!hasGetterName && !hasBooleanGetterName) {
+            return false;
+        }
+
+        //Validation stricte du corps (uniquement si le code source AST est accessible)
+        Optional<com.github.javaparser.ast.Node> astNode = resolvedMethod.toAst();
+        if (astNode.isPresent() && astNode.get() instanceof MethodDeclaration) {
+            MethodDeclaration methodAST = (MethodDeclaration) astNode.get();
+            if (methodAST.getBody().isEmpty()) return false;
+            
+            var body = methodAST.getBody().get();
+            // Un getter strict ne contient qu'une seule instruction : le "return"
+            if (body.getStatements().size() != 1 || !body.getStatement(0).isReturnStmt()) {
+                return false;
+            }
+        } 
+        // Si astNode est vide, la méthode vient d'un .class externe (ex: un JAR). 
+        // On valide la méthode uniquement sur sa signature (nom + paramètres + retour).
+
+        return true;
+    }
+    
+    /**
+     * 
+     * La méthode vient elle d'une classe d'un Jar
+     *
+     * @param resolvedMethod
+     * @return
+     */
+    public static boolean isFromJar(ResolvedMethodDeclaration resolvedMethod) {
+        // Si l'objet est une instance de JavassistMethodDeclaration,
+        // c'est qu'il a été extrait du bytecode d'un fichier .jar ou .class externe
+        return resolvedMethod instanceof JavassistMethodDeclaration;
+    }
+    
    }

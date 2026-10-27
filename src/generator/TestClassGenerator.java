@@ -5,8 +5,10 @@ import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.ConditionalExpr;
@@ -21,9 +23,12 @@ import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.MethodUsage;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
@@ -36,6 +41,7 @@ import generator.bean.FieldInfo;
 import generator.bean.MethodCallInfo;
 import generator.bean.MethodInfo;
 import generator.config.Config;
+import generator.utils.ParseUtils;
 import generator.utils.XmlInjection;
 
 import javax.lang.model.element.Modifier;
@@ -129,38 +135,47 @@ public class TestClassGenerator
                     classInfo.getImports().put(simpleName, qualifiedName);
                 }
 
-                if (className.equals("RegieDaoImpl"))
-                {
-                    System.out.println("RegieDaoImpl");
-                }
-
-                ResolvedReferenceTypeDeclaration resolvedChild = clazz.resolve();
-                // On récupère la superclasse directe si heritage
-                resolvedChild.asClass().getSuperClass().ifPresent(superClass -> {
-                    //On extrait la déclaration de type de la classe parente
-                    ResolvedReferenceTypeDeclaration resolvedParent = superClass.getTypeDeclaration().get();
-                    // On parcourt ses méthodes déclarées
-                    for (ResolvedMethodDeclaration resolvedMethod : resolvedParent.getDeclaredMethods())
-                    {
-                        MethodInfo methodInfo = new MethodInfo();
-                        methodInfo.setSignature(resolvedMethod.getSignature());
-                        methodInfo.setName(resolvedMethod.getName());
-                        methodInfo.setInherited(true);
-                        classInfo.getMethods().put(resolvedMethod.getSignature(), methodInfo);
-                    }
-                });
                
+                if (className.equals("EvenementServiceImpl" ))
+                  {
+                      System.out.println("DEBUG CLASSE==>" + className);
+                }
+                ResolvedReferenceTypeDeclaration resolvedChild = clazz.resolve();
+                // si c'est une classe
+                if (resolvedChild.isClass()) {
+                    // Récupère récursivement toutes les super-classes
+                    resolvedChild.asClass().getAllAncestors().forEach(ancestor -> {
+                        ResolvedReferenceTypeDeclaration resolvedParent = ancestor.getTypeDeclaration().get();
+                        // On ignore la classe Object et l'interface directe implémentée (implements...)
+                        // pour ne pas surcharger
+                        if (!resolvedParent.getQualifiedName().equals("java.lang.Object")
+                            && ! resolvedParent.isInterface())
+                        {
+                            extractMethods(resolvedParent, classInfo);
+                        }
+                    });
+                } 
+                else if (resolvedChild.isInterface()) {
+                    // Récupère récursivement toutes les interfaces parentes
+                    resolvedChild.asInterface().getAllAncestors().forEach(ancestor -> {
+                        ResolvedReferenceTypeDeclaration resolvedParent = ancestor.getTypeDeclaration().get();
+                        extractMethods(resolvedParent, classInfo);
+                    });
+                }
 
                 for (MethodDeclaration method : clazz.getMethods())
                 {
                     ResolvedMethodDeclaration resolvedMethod = method.resolve();
-
+                    
+                    if (className.equals("EvenementServiceImpl" )
+                        && method.getNameAsString().equals("creerEvenement")) //RegieDao
+                    {
+                          System.out.println("DEBUG CLASSE==>" + className);
+                    }
+                    
                     MethodInfo methodInfo = new MethodInfo();
                     methodInfo.setName(method.getNameAsString());
                     methodInfo.setReturnType(method.getType());
-                    // System.out.println("Declaration methode: "+ method.getTypeAsString()+":::"+method.getType());
-                    // methodInfo.setDeclaration(method);
-                    // methodInfo.setCalls(method.findAll(MethodCallExpr.class));
                     methodInfo.setPrivate(method.isPrivate());
                     methodInfo.setStatic(method.isStatic());
                     methodInfo.setInherited(false);
@@ -175,8 +190,9 @@ public class TestClassGenerator
                     methodInfo.setThrownExceptions(method.getThrownExceptions());
                     methodInfo.setIfStmts(method.findAll(IfStmt.class));
                     methodInfo.setReturnStmts(method.findAll(ReturnStmt.class));
-                    methodInfo.setComplex(isMethodComplex(method));
-
+                    methodInfo.setComplex(ParseUtils.isMethodComplex(method));
+                    boolean isGetOrSet = (ParseUtils.isSetter(method) ||  ParseUtils.isGetter(method));
+                    methodInfo.setGetterOrSetter(isGetOrSet);
                     Map<String, MethodCallInfo> mapCalls = new HashMap<>();
                     method.findAll(MethodCallExpr.class).forEach(methodCall -> {
                         try
@@ -214,11 +230,7 @@ public class TestClassGenerator
                 // { System.out.println("2222=>" + clazz.getNameAsString()+ ">>>>" +classInfo.getQualifiedName());
 
                 // }
-                if (className.equals("RegieServiceImpl"))
-                {
-                    System.out.println("RegieServiceImpl");
-                    System.out.println(clazz.getFullyQualifiedName().get());
-                }
+               
                 List<String> props = new ArrayList<String>();
                 if (xmlProperties.containsKey(clazz.getFullyQualifiedName().get()))
                 {
@@ -310,56 +322,50 @@ public class TestClassGenerator
 
     }
 
+ 
+
+    
     /**
-     * Détermine si un getter ou setter contient de la logique métier ou des règles complexes.
-     * 
-     * @param method La déclaration de la méthode à analyser.
-     * @return true si la méthode est complexe, false si elle est simple (ou vide).
+     * Méthode utilitaire factorisée pour extraire et stocker les méthodes
      */
-    private static boolean isMethodComplex(MethodDeclaration method)
-    {
-        // Si la méthode n'a pas de corps (ex: interface, méthode abstraite), elle n'est pas complexe
-        if (method.getBody().isEmpty())
-        {
-            return false;
+    private void extractMethods(ResolvedReferenceTypeDeclaration resolvedParent, ClassInfo classInfo) {
+
+        for (ResolvedMethodDeclaration resolvedMethod : resolvedParent.getDeclaredMethods()) {
+            ResolvedType resolvedReturnType = resolvedMethod.getReturnType();
+            Type returnType = StaticJavaParser.parseType(resolvedReturnType.describe());
+            
+            NodeList<Parameter> parametersList= new NodeList<Parameter>();
+            for (int i = 0; i < resolvedMethod.getNumberOfParams(); i++) {
+                ResolvedParameterDeclaration resolvedParam = resolvedMethod.getParam(i);
+                // Conversion du type du paramètre en nœud AST Type
+                Type paramType = StaticJavaParser.parseType(resolvedParam.getType().describe());
+                // On récupère le nom de la variable du paramètre
+                String paramName = resolvedParam.getName();
+                if (paramName == null || paramName.trim().isEmpty()) {
+                    // Si le nom est vide (cas du JDK / JAR compilé), on génère un nom générique : p0, p1, p2...
+                    paramName = "p" + i; 
+                }
+                //crée un nouveau nœud AST de type Parameter(Type, String)
+                Parameter astParameter = new Parameter(paramType, paramName);
+                
+                parametersList.add(astParameter);
+            }
+         
+                  
+            MethodInfo methodInfo = new MethodInfo();
+            methodInfo.setSignature(resolvedMethod.getSignature());
+            methodInfo.setName(resolvedMethod.getName());
+            methodInfo.setInherited(true);
+            methodInfo.setReturnType(returnType);
+            methodInfo.setParameters(parametersList);
+            methodInfo.setComplex(ParseUtils.isMethodComplex(resolvedMethod));
+           
+            boolean isGetOrSet = (ParseUtils.isSetter(resolvedMethod) ||  ParseUtils.isGetter(resolvedMethod));
+            methodInfo.setGetterOrSetter(isGetOrSet);
+            // putIfAbsent évite qu'une classe grand-parente n'écrase 
+            // la redéfinition d'une classe parente plus proche
+            classInfo.getMethods().putIfAbsent(resolvedMethod.getSignature(), methodInfo);
         }
-
-        BlockStmt body = method.getBody().get();
-
-        // Plus d'une seule instruction de base = Logique ou effets de bord
-        if (body.getStatements().size() > 1)
-        {
-            return true;
-        }
-
-        // Présence de structures conditionnelles (if, switch, guard clauses avec throw)
-        boolean contientConditions = !body.findAll(IfStmt.class).isEmpty()
-            || !body.findAll(SwitchStmt.class).isEmpty()
-            || !body.findAll(ThrowStmt.class).isEmpty();
-        if (contientConditions)
-        {
-            return true;
-        }
-
-        // 3. Présence de boucles (for, foreach, while, do-while)
-        boolean contientBoucles = !body.findAll(ForStmt.class).isEmpty()
-            || !body.findAll(ForEachStmt.class).isEmpty()
-            || !body.findAll(WhileStmt.class).isEmpty()
-            || !body.findAll(DoStmt.class).isEmpty();
-        if (contientBoucles)
-        {
-            return true;
-        }
-
-        // 4. Présence d'opérateurs ternaires (ex: return (val != null) ? val : "default";)
-        boolean contientTernaire = !body.findAll(ConditionalExpr.class).isEmpty();
-        if (contientTernaire)
-        {
-            return true;
-        }
-
-        // Si aucun critère de complexité n'est détecté, la méthode est considérée comme simple
-        return false;
     }
 
 }
