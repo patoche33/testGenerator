@@ -460,7 +460,7 @@ public class MethodTestGenerator
         // ajouter dans la liste des statics import
         Imports.addStaticImport(Imports.MOCKITO, "doNothing");
 
-        CodeBlock args = parameterOrMatcher(methodInfo, classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
+        CodeBlock args = buildMatchers( classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
 
         CodeBlock.Builder block = CodeBlock.builder();
         block.add(
@@ -495,8 +495,8 @@ public class MethodTestGenerator
         // ajouter dans la liste des statics import
         Imports.addStaticImport(Imports.MOCKITO, "verify");
 
-        //CodeBlock args = buildMatchers(classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
-        CodeBlock args = parameterOrMatcher(methodInfo, classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
+        CodeBlock args = buildMatchers(classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
+        //CodeBlock args = parameterOrMatcher(methodInfo, classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
 
         CodeBlock.Builder block = CodeBlock.builder();
         block.add(
