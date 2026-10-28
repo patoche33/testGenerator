@@ -127,7 +127,11 @@ public class TestClassGenerator
                 classInfo.setClassName(className);
                 classInfo.setQualifiedName(pkg + "." + className);
                 classInfo.setFile(file);
-
+                
+                if (className.equals("RegieServiceImpl" ))
+                  {
+                      System.out.println("DEBUG CLASSE==>" + className);
+                }
                 for (ImportDeclaration imp : cu.getImports())
                 {
                     String qualifiedName = imp.getNameAsString();
@@ -135,11 +139,7 @@ public class TestClassGenerator
                     classInfo.getImports().put(simpleName, qualifiedName);
                 }
 
-               
-                if (className.equals("EvenementServiceImpl" ))
-                  {
-                      System.out.println("DEBUG CLASSE==>" + className);
-                }
+             
                 ResolvedReferenceTypeDeclaration resolvedChild = clazz.resolve();
                 // si c'est une classe
                 if (resolvedChild.isClass()) {
@@ -280,7 +280,11 @@ public class TestClassGenerator
 
         System.out.println("Traitement de " + pkg + "." + className);
         /* Ecriture de la classe de test */
-
+ 
+        if (className.equals("RegieServiceImpl" ))
+        {
+            System.out.println("DEBUG CLASSE==>" + className);
+     }
         TypeSpec.Builder testClass = TypeSpec.classBuilder(className + "Test")
             .addModifiers(Modifier.PUBLIC);
 

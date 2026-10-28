@@ -74,7 +74,9 @@ public class MethodTestGenerator
     private static String NEWT = "new $T()";
 
     private static String NEWPARAMETERIZEDT = "new $T<>()";
-
+    
+    private static String NEWTL = "$T.$L()";
+    
     private List<String> listMocks;
 
     private Map<ClassName, List<String>> listStaticImport;
@@ -348,9 +350,9 @@ public class MethodTestGenerator
                     if (classes.get(fqnMock).getMethods().get(signatureCall).getReturnType().isVoidType())
                     {
                         // Ajout du code block contenant doNothig.when(method(param))
-                        addDoNothing(methodCallInfo);
+                        addDoNothing(methodInfo,methodCallInfo);
                         // Ajout du code block contenant verify(service).method(param)
-                        addVerify(methodCallInfo);
+                        addVerify(methodInfo,methodCallInfo);
                     }
                     else
                     { /* Generation when */
@@ -447,7 +449,7 @@ public class MethodTestGenerator
      * @param call
      */
 
-    private void addDoNothing(MethodCallInfo methodCallInfo)
+    private void addDoNothing(MethodInfo methodInfo, MethodCallInfo methodCallInfo)
     {
         MethodCallExpr call = methodCallInfo.getMethodCallExpr();
         ResolvedMethodDeclaration resolvedMethod = methodCallInfo.getResolvedMethodDeclaration();
@@ -458,7 +460,7 @@ public class MethodTestGenerator
         // ajouter dans la liste des statics import
         Imports.addStaticImport(Imports.MOCKITO, "doNothing");
 
-        CodeBlock args = buildMatchers(classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
+        CodeBlock args = parameterOrMatcher(methodInfo, classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
 
         CodeBlock.Builder block = CodeBlock.builder();
         block.add(
@@ -481,7 +483,7 @@ public class MethodTestGenerator
      * @param call
      */
 
-    private void addVerify(MethodCallInfo methodCallInfo)
+    private void addVerify(MethodInfo methodInfo, MethodCallInfo methodCallInfo)
     {
         MethodCallExpr call = methodCallInfo.getMethodCallExpr();
         ResolvedMethodDeclaration resolvedMethod = methodCallInfo.getResolvedMethodDeclaration();
@@ -493,7 +495,8 @@ public class MethodTestGenerator
         // ajouter dans la liste des statics import
         Imports.addStaticImport(Imports.MOCKITO, "verify");
 
-        CodeBlock args = buildMatchers(classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
+        //CodeBlock args = buildMatchers(classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
+        CodeBlock args = parameterOrMatcher(methodInfo, classes.get(fqnMock).getMethods().get(resolvedMethod.getSignature()));
 
         CodeBlock.Builder block = CodeBlock.builder();
         block.add(
@@ -1212,7 +1215,7 @@ public class MethodTestGenerator
         String typeString = type.asString();
         if (ParseUtils.isAbstract(type))
         {
-            return "$T.$L()";
+            return NEWTL;
 
         }
         else if (ParseUtils.isInterfaceCollection(type))
@@ -1299,7 +1302,51 @@ public class MethodTestGenerator
         });
 
     }
+    /**
+     * 
+     * retourne les parametres soit de type matcher (any()...), soit le nom du parametre  si 
+     * celui-ci est un paralmetre de la methode à tester
+     *
+     * @param method Methode a tester
+     * @param call methode appellée à l'interieur d ela méthode à tester
+     * @return
+     */
+    private CodeBlock parameterOrMatcher(MethodInfo method, MethodInfo call)
+    {
+        CodeBlock.Builder block = CodeBlock.builder();
+        NodeList<Parameter> paramsMethod = method.getParameters();
+        for (int i = 0; i < call.getParameters().size(); i++)
+        {
+            if (i > 0)
+                block.add(", ");
+            //le parametre de la methode call est présent en tant que parametre de la methode à tester
+            if (paramsMethod.contains(call.getParameters().get(i)))
+            {
+                //Type du parametre call (et donc du parametre de la methode à tester)
+                String typeString = call.getParameters().get(i).getTypeAsString();
+                // Soit on utilise un mock déclaré 
+                if (Mocks.getListmocks().containsKey(typeString))
+                {
+                    block.add("$L", "mock" + typeString);
+                }
+                else
+                {   //soit on utlise le nom du paramètre
+                    block.add("$L", call.getParameters().get(i).getNameAsString());
+                }
+                
+                
+                
+            }
+            else
+            {
+                block.add("$L", matcher(call.getParameters().get(i).getTypeAsString()));
+            }
+            
+        }
+        return block.build();
 
+    }
+    
     private CodeBlock buildMatchers(MethodInfo call)
     {
         CodeBlock.Builder block = CodeBlock.builder();
