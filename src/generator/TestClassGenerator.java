@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.ConditionalExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.DoStmt;
@@ -165,14 +166,19 @@ public class TestClassGenerator
 
                 for (MethodDeclaration method : clazz.getMethods())
                 {
-                    ResolvedMethodDeclaration resolvedMethod = method.resolve();
-                    
-                    if (className.equals("EvenementServiceImpl" )
-                        && method.getNameAsString().equals("creerEvenement")) //RegieDao
+                   
+                    if (classInfo.getClassName().equals("TableauDeBordWebServiceImpl")
+                        && method.getNameAsString().equals("findStratesRestit"))
                     {
-                          System.out.println("DEBUG CLASSE==>" + className);
+                        System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
+                            " et METHODE ===>" + method.getName());
+                       
                     }
                     
+                    
+                    ResolvedMethodDeclaration resolvedMethod = method.resolve();
+                    
+                                       
                     MethodInfo methodInfo = new MethodInfo();
                     methodInfo.setName(method.getNameAsString());
                     methodInfo.setReturnType(method.getType());
@@ -186,10 +192,12 @@ public class TestClassGenerator
                     }
 
                     methodInfo.setVariables(method.findAll(VariableDeclarator.class));
+                    //expression d'assignations du genre "variable_x = 5"
                     methodInfo.setAssignExpressions(method.findAll(AssignExpr.class));
                     methodInfo.setThrownExceptions(method.getThrownExceptions());
                     methodInfo.setIfStmts(method.findAll(IfStmt.class));
                     methodInfo.setReturnStmts(method.findAll(ReturnStmt.class));
+                    methodInfo.setExpressions(method.findAll(Expression.class));
                     methodInfo.setComplex(ParseUtils.isMethodComplex(method));
                     boolean isGetOrSet = (ParseUtils.isSetter(method) ||  ParseUtils.isGetter(method));
                     methodInfo.setGetterOrSetter(isGetOrSet);

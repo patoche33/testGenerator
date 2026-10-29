@@ -46,8 +46,10 @@ import generator.bean.ElementExpression;
 import generator.bean.MethodCallInfo;
 import generator.bean.MethodInfo;
 import generator.bean.Mocks;
+import generator.bean.RequestAttributeInfo;
 import generator.bean.SessionAttributeInfo;
 import generator.utils.ParseUtils;
+import generator.utils.RequestAnalyser;
 import generator.utils.SessionAnalyser;
 
 import java.io.IOException;
@@ -166,8 +168,8 @@ public class MethodTestGenerator
         {
            
 
-            if (classInfo.getClassName().equals("EvenementServiceImpl")
-                && methodInfo.getName().equals("creerEvenement"))
+            if (classInfo.getClassName().equals("TableauDeBordWebServiceImpl")
+                && methodInfo.getName().equals("findStratesRestit"))
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -363,6 +365,11 @@ public class MethodTestGenerator
                     }
                 }
             }
+            else if( methodInfo.getParameters().stream().map(p->p.getNameAsString()).toList().contains(mock)
+                )
+            {
+                System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
+            }
             else /*
                   * la methode ne fait pas parti des declarations de la classe. Méthode privée de la classe ou Méthode d'une autre classe
                   * (instanciée ou static)
@@ -383,6 +390,12 @@ public class MethodTestGenerator
         {
             methodeBuilder.addComment("Surcharge de la méthode " + methodInfo.getSignature());
         }
+        /* gestion du HttpServletRequest */
+         RequestAnalyser requestAnalyser = new RequestAnalyser();
+         List<RequestAttributeInfo> requestAttributes = requestAnalyser.analyse(methodInfo);
+
+        
+        
         /* gestion des sessions et session.getAttribute(...) */
         buildSession(methodInfo);
         /* gestion du block contenant l'appel de la méthode et déclaration ds de paramètres de la methodes */

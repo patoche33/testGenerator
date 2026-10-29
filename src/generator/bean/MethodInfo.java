@@ -10,6 +10,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
@@ -45,7 +46,7 @@ public class MethodInfo {
     private List<AssignExpr> assignExpressions = new ArrayList<>();
     private List<IfStmt> ifStmts = new ArrayList<>();
     private List<ReturnStmt> returnStmts = new ArrayList<>();
-
+    private List<Expression> expressions = new ArrayList<>();
     private NodeList<ReferenceType> thrownExceptions;
     
     private Map<String, List<MethodCallInfo>> exceptions;
@@ -224,6 +225,16 @@ public class MethodInfo {
     public void setGetterOrSetter(boolean isGetterOrSetter)
     {
         this.isGetterOrSetter = isGetterOrSetter;
+    }
+
+    public List<Expression> getExpressions()
+    {
+        return expressions;
+    }
+
+    public void setExpressions(List<Expression> expressions)
+    {
+        this.expressions = expressions;
     }
     
 }
