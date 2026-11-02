@@ -129,10 +129,6 @@ public class TestClassGenerator
                 classInfo.setQualifiedName(pkg + "." + className);
                 classInfo.setFile(file);
                 
-                if (className.equals("RegieServiceImpl" ))
-                  {
-                      System.out.println("DEBUG CLASSE==>" + className);
-                }
                 for (ImportDeclaration imp : cu.getImports())
                 {
                     String qualifiedName = imp.getNameAsString();
@@ -166,17 +162,7 @@ public class TestClassGenerator
 
                 for (MethodDeclaration method : clazz.getMethods())
                 {
-                   
-                    if (classInfo.getClassName().equals("TableauDeBordWebServiceImpl")
-                        && method.getNameAsString().equals("findStratesRestit"))
-                    {
-                        System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
-                            " et METHODE ===>" + method.getName());
-                       
-                    }
-                    
-                    
-                    ResolvedMethodDeclaration resolvedMethod = method.resolve();
+                   ResolvedMethodDeclaration resolvedMethod = method.resolve();
                     
                                        
                     MethodInfo methodInfo = new MethodInfo();

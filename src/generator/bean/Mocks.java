@@ -35,5 +35,9 @@ public  class Mocks
         return mapMocks;
     }
     
+    public static String getMock(String mock)
+    {
+         return mapMocks.get(mock);
+    }
     
 }

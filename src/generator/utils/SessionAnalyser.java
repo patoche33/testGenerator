@@ -1,59 +1,77 @@
 package generator.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
+import generator.bean.MethodCallInfo;
 import generator.bean.MethodInfo;
 import generator.bean.SessionAttributeInfo;
 
 public class SessionAnalyser
 {
-    public List<SessionAttributeInfo> analyse(MethodInfo methodInfo)
+    List<SessionAttributeInfo> sessionGetAttributes = new ArrayList<>();
+
+    List<SessionAttributeInfo> sessionSetAttributes = new ArrayList<>();
+
+    public Map<String, List> analyse(MethodInfo methodInfo)
     {
-        List<SessionAttributeInfo> sessionAttributes = new ArrayList<>();
-                
+        Map<String, List> sessionAttributes = new HashMap<>();
+        
         for (VariableDeclarator var : methodInfo.getVariables())
         {
-            var.getInitializer().ifPresent(expr ->{
-                analyseExpression(expr, var, sessionAttributes);
+            var.getInitializer().ifPresent(expr -> {
+                analyseExpression(expr, var);
             });
-        
+
         }
-        return sessionAttributes;
         
-     }
-    
-    private void  analyseExpression(Expression expr, VariableDeclarator var,  List<SessionAttributeInfo> sessionAttributes)
+        sessionAttributes.put("get", sessionGetAttributes);
+        
+        methodInfo.getCalls().forEach((k,v)->{
+            
+            analyseExpression(v.getMethodCallExpr() );
+          
+        });
+        
+        sessionAttributes.put("set", sessionSetAttributes);
+        return sessionAttributes;
+
+    }
+
+    private void analyseExpression(Expression expr, VariableDeclarator var)
     {
         if (expr.isCastExpr())
         {
-            analyseExpression(expr.asCastExpr().getExpression(), var, sessionAttributes);
+            analyseExpression(expr.asCastExpr().getExpression(), var);
         }
-        
+
         if (!expr.isMethodCallExpr())
-                return;
-        
-        MethodCallExpr call = expr.asMethodCallExpr();
-        
-        if (! "getAttribute".equals(call.getNameAsString()))
             return;
-        
+
+        MethodCallExpr call = expr.asMethodCallExpr();
+
+        if (!"getAttribute".equals(call.getNameAsString()) )
+            return;
+
         if (call.getArguments().isEmpty())
             return;
-        
+
         Expression scope = call.getScope().orElse(null);
-        
+
         if (!(scope instanceof MethodCallExpr))
             return;
-        
+
         MethodCallExpr sessionCall = (MethodCallExpr) scope;
-        
-        if (! "getSession".equals(sessionCall.getNameAsString()))
+
+        if (!"getSession".equals(sessionCall.getNameAsString()) )
             return;
+
         SessionAttributeInfo sessionAttrInfo = new SessionAttributeInfo();
         sessionAttrInfo.setVariable(var);
         sessionAttrInfo.setVariableType(var.getTypeAsString());
@@ -63,6 +81,46 @@ public class SessionAnalyser
         {
             sessionAttrInfo.setAttibuteName(attribute.asStringLiteralExpr().asString());
         }
-        sessionAttributes.add(sessionAttrInfo);
+      
+        sessionGetAttributes.add(sessionAttrInfo);
+        
+
+    }
+    private void analyseExpression(MethodCallExpr expr)
+    {
+       
+        if (!"setAttribute".equals(expr.getNameAsString()) )
+            return;
+
+        if (expr.getArguments().isEmpty())
+            return;
+
+        Expression scope = expr.getScope().orElse(null);
+
+        if (!(scope instanceof MethodCallExpr))
+            return;
+
+        MethodCallExpr sessionCall = (MethodCallExpr) scope;
+
+        if (!"getSession".equals(sessionCall.getNameAsString()) )
+            return;
+
+        SessionAttributeInfo sessionAttrInfo = new SessionAttributeInfo();
+        sessionAttrInfo.setRequestVariable(sessionCall.getScope().map(Expression::toString).orElse("request"));
+        if (expr.getArgument(0).isStringLiteralExpr()) {
+            sessionAttrInfo.setAttibuteName( expr.getArgument(0).asStringLiteralExpr().getValue());
+        } 
+        if (expr.getArgument(1).isNameExpr()) {
+            // C'est un NameExpr (ex: nbrDelai)
+            sessionAttrInfo.setValue( expr.getArgument(1).asNameExpr().getNameAsString());
+        } else {
+            // Au cas où c'est autre chose (un chiffre direct, un appel de méthode, etc.)
+            sessionAttrInfo.setValue( expr.getArgument(1).toString());
+        }
+        
+      
+        sessionSetAttributes.add(sessionAttrInfo);
+        
+
     }
 }

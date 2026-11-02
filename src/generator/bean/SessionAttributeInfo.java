@@ -11,6 +11,8 @@ public class SessionAttributeInfo
     private String variableType;
     
     private VariableDeclarator variable;
+    
+    private String value;
 
     public String getRequestVariable()
     {
@@ -50,6 +52,16 @@ public class SessionAttributeInfo
     public void setVariable(VariableDeclarator variable)
     {
         this.variable = variable;
+    }
+
+    public String getValue()
+    {
+        return value;
+    }
+
+    public void setValue(String value)
+    {
+        this.value = value;
     }
     
     
