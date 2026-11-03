@@ -168,7 +168,7 @@ public class MethodTestGenerator
         {
 
             if (classInfo.getClassName().equals("TableauDeBordWebServiceImpl")
-                && methodInfo.getName().equals("findStratesRestit"))
+                && methodInfo.getName().equals("findStratesRestit"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -393,7 +393,7 @@ public class MethodTestGenerator
         buildHttpServletRequest(methodInfo);
 
         /* gestion des sessions et session.getAttribute(...) */
-        //buildSession(methodInfo);
+        buildSession(methodInfo);
         
         /* gestion du block contenant l'appel de la méthode et déclaration ds de paramètres de la methodes */
         if (exception.isEmpty())
@@ -1271,7 +1271,7 @@ public class MethodTestGenerator
             {
                 getListMocks().add("HttpSession");
                 // ajouter l'import (typpename le retorouvera dans les imports)
-                classInfo.getImports().put("HttpSession", Mocks.getMock("HttpSession"));
+                classInfo.getImports().put("HttpSession", Mocks.HttpSession.getType());
             }
             CodeBlock.Builder block = CodeBlock.builder();
             block.add("when(mockHttpServletRequest.getSession()).thenReturn(mockHttpSession)");
@@ -1341,7 +1341,7 @@ public class MethodTestGenerator
         {
             getListMocks().add("HttpServletRequest");
             // ajouter l'import (typpename le retorouvera dans les imports)
-            classInfo.getImports().put("HttpServletRequest", Mocks.getMock("HttpServletRequest"));
+            classInfo.getImports().put("HttpServletRequest", Mocks.HttpServletRequest.getType());
         }
 
         if (requestAttributes.stream().anyMatch(at -> "getParameterMap".equals(at.getRequestVariable())))

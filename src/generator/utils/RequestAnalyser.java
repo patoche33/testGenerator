@@ -130,7 +130,7 @@ public class RequestAnalyser
                 resolvedTypeScope = call.getScope().get().calculateResolvedType();
             }
             // jakarta.servlet.http.HttpServletRequest
-            if (!resolvedTypeScope.describe().equals(Mocks.getMock("HttpServletRequest")))
+            if (!resolvedTypeScope.describe().equals(Mocks.HttpServletRequest.getType()))
             {
                 return;
             }

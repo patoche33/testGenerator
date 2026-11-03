@@ -278,7 +278,7 @@ public class TestClassGenerator
         if (className.equals("RegieServiceImpl" ))
         {
             System.out.println("DEBUG CLASSE==>" + className);
-     }
+        }
         TypeSpec.Builder testClass = TypeSpec.classBuilder(className + "Test")
             .addModifiers(Modifier.PUBLIC);
 
