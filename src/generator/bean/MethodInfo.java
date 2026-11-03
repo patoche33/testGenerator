@@ -28,7 +28,7 @@ public class MethodInfo {
 
     private String body;
     
-    private  Map<String,MethodCallInfo> calls;
+    private  Map<String,List<MethodCallInfo>> calls;
     
     private  NodeList<Parameter> parameters;
     
@@ -55,7 +55,7 @@ public class MethodInfo {
     public MethodInfo()
     {
         body = "";
-        calls = new HashMap<String,MethodCallInfo>();
+        calls = new HashMap<String,List<MethodCallInfo>>();
         exceptions = new HashMap<String,  List<MethodCallInfo>>();
         thrownExceptions = new NodeList<ReferenceType>();
     }
@@ -107,12 +107,12 @@ public class MethodInfo {
         this.returnType = returnType;
     }
 
-    public  Map<String,MethodCallInfo> getCalls()
+    public  Map<String,List<MethodCallInfo>> getCalls()
     {
         return calls;
     }
 
-    public void setCalls( Map<String,MethodCallInfo>calls)
+    public void setCalls( Map<String,List<MethodCallInfo>>calls)
     {
         this.calls = calls;
     }

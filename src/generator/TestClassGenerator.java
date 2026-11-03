@@ -187,7 +187,8 @@ public class TestClassGenerator
                     methodInfo.setComplex(ParseUtils.isMethodComplex(method));
                     boolean isGetOrSet = (ParseUtils.isSetter(method) ||  ParseUtils.isGetter(method));
                     methodInfo.setGetterOrSetter(isGetOrSet);
-                    Map<String, MethodCallInfo> mapCalls = new HashMap<>();
+                    //possibilité de plusieurs fois la methode est appelée
+                    Map<String, List<MethodCallInfo>> mapCalls = new HashMap<>();
                     method.findAll(MethodCallExpr.class).forEach(methodCall -> {
                         try
                         {
@@ -197,8 +198,20 @@ public class TestClassGenerator
                             ResolvedMethodDeclaration resolved = methodCall.resolve();
                             methodCallInfo.setResolvedMethodDeclaration(resolved);
                             methodCallInfo.setMethodCallExpr(methodCall);
-
-                            mapCalls.put(resolved.getSignature(), methodCallInfo);
+                            
+                            //premiere occurence
+                            if (mapCalls.get(resolved.getSignature())== null)
+                            {   //première occurence
+                                List<MethodCallInfo> listMethodCall = new ArrayList<>();
+                                listMethodCall.add(methodCallInfo);
+                                mapCalls.put(resolved.getSignature(), listMethodCall);
+                            }
+                            else {
+                                //autre occurence
+                                mapCalls.get(resolved.getSignature()).add(methodCallInfo);
+                            }
+                           // mapCalls.put(resolved.getSignature(), methodCallInfo);
+                            
                             // System.out.println("-> Appel trouvé vers : " + resolved.getQualifiedName());
                         }
                         catch (Exception e)

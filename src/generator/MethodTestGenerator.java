@@ -293,91 +293,96 @@ public class MethodTestGenerator
         // System.out.println("***** Traitement Test " + methodInfo.getName() + " *****");
         // System.out.println("");
 
-        Map<String, MethodCallInfo> calls = methodInfo.getCalls();
-        for (Map.Entry entry : calls.entrySet())
+        Map<String, List<MethodCallInfo>> ListCalls = methodInfo.getCalls();
+
+        for (Map.Entry entry : ListCalls.entrySet())
         {
-            MethodCallInfo methodCallInfo = (MethodCallInfo) entry.getValue();
-            String signatureCall = methodCallInfo.getResolvedMethodDeclaration().getSignature();// (String) entry.getKey();
-
-            MethodCallExpr call = (MethodCallExpr) methodCallInfo.getMethodCallExpr();
-
-            /* call est une méthode de la classe à tester. */
-            if (call.getScope().isEmpty())
+            List<MethodCallInfo> listMethoCall = (List<MethodCallInfo>) entry.getValue();
+            for (MethodCallInfo methodCallInfo : listMethoCall)
             {
-                continue;
-            }
+                // MethodCallInfo methodCallInfo = (MethodCallInfo) entry.getValue();
+                String signatureCall = methodCallInfo.getResolvedMethodDeclaration().getSignature();// (String) entry.getKey();
 
-            String mock = call.getScope().get().toString(); // nom de l'instance de classe
-            String methodName = call.getNameAsString(); // nom de la méthode à mocker
+                MethodCallExpr call = (MethodCallExpr) methodCallInfo.getMethodCallExpr();
 
-            /*
-             * Génération du when ou doNothing si type void
-             */
+                /* call est une méthode de la classe à tester. */
+                if (call.getScope().isEmpty())
+                {
+                    continue;
+                }
 
-            // if (mock.equals("historisationwebservice"))
-            // {
-            // System.out.println("YYYSSSS!!!!");
-            // }
-
-            // System.out.println("Traitement méthode appelé " + mock + " . " + methodName);
-
-            String returnValue;
-
-            /* si la methode fait parti des declarations de la classe */
-            if (classInfo.getFields().get(mock) != null)
-            {
-                String fqnMock = classInfo.getImports().get(classInfo.getFields().get(mock).getType());
-
-                // System.out.println("Mock de " + mock + " de type " + fqnMock);
+                String mock = call.getScope().get().toString(); // nom de l'instance de classe
+                String methodName = call.getNameAsString(); // nom de la méthode à mocker
 
                 /*
-                 * recherche de la classe contenant la méthode appelée Si elle est trouvée on vérifie que la classe en import est en
-                 * Autowired ou fait parti des propriétés (d'injection spring) du fichier spring applicationContext-service.xml car on
-                 * ne génère le "when" que pour les méthodes dont la classe est en autowired dans la classe de test
+                 * Génération du when ou doNothing si type void
                  */
 
-                if (classes.get(fqnMock) != null &&
-                    (classInfo.getFields().get(mock).getAnnotations().contains("@Autowired") ||
-                        classInfo.getFields().get(mock).getXmlInject()
+                // if (mock.equals("historisationwebservice"))
+                // {
+                // System.out.println("YYYSSSS!!!!");
+                // }
+
+                // System.out.println("Traitement méthode appelé " + mock + " . " + methodName);
+
+                String returnValue;
+
+                /* si la methode fait parti des declarations de la classe */
+                if (classInfo.getFields().get(mock) != null)
+                {
+                    String fqnMock = classInfo.getImports().get(classInfo.getFields().get(mock).getType());
+
+                    // System.out.println("Mock de " + mock + " de type " + fqnMock);
+
+                    /*
+                     * recherche de la classe contenant la méthode appelée Si elle est trouvée on vérifie que la classe en import est en
+                     * Autowired ou fait parti des propriétés (d'injection spring) du fichier spring applicationContext-service.xml car on
+                     * ne génère le "when" que pour les méthodes dont la classe est en autowired dans la classe de test
+                     */
+
+                    if (classes.get(fqnMock) != null &&
+                        (classInfo.getFields().get(mock).getAnnotations().contains("@Autowired") ||
+                            classInfo.getFields().get(mock).getXmlInject()
+
+                        )
 
                     )
-
-                )
-                {
-
-                    // la methode appelée est de type void . Gestion du doNoting et verify
-                    if (classes.get(fqnMock).getMethods().get(signatureCall).getReturnType().isVoidType())
                     {
-                        // Ajout du code block contenant doNothig.when(method(param))
-                        addDoNothing(methodInfo, methodCallInfo);
-                        // Ajout du code block contenant verify(service).method(param)
-                        addVerify(methodInfo, methodCallInfo);
-                    }
-                    else
-                    { /* Generation when */
 
-                        // Ajout du code block contenant when(method(param)).thenReturn()
-                        // CodeBlock.Builder block =
-                        addWhen(methodCallInfo);
+                        // la methode appelée est de type void . Gestion du doNoting et verify
+                        if (classes.get(fqnMock).getMethods().get(signatureCall).getReturnType().isVoidType())
+                        {
+                            // Ajout du code block contenant doNothig.when(method(param))
+                            addDoNothing(methodInfo, methodCallInfo);
+                            // Ajout du code block contenant verify(service).method(param)
+                            addVerify(methodInfo, methodCallInfo);
+                        }
+                        else
+                        { /* Generation when */
+
+                            // Ajout du code block contenant when(method(param)).thenReturn()
+                            // CodeBlock.Builder block =
+                            addWhen(methodCallInfo);
+                        }
                     }
                 }
-            }
-            else if (methodInfo.getParameters().stream().map(p -> p.getNameAsString()).toList().contains(mock))
-            {
-                System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
-            }
-            else /*
-                  * la methode ne fait pas parti des declarations de la classe. Méthode privée de la classe ou Méthode d'une autre classe
-                  * (instanciée ou static)
-                  */
-            {
-                // System.out.println("PRIVATE METHOD: " + call.getScope().get().toString() + "=>" + call.getNameAsString());
+                else if (methodInfo.getParameters().stream().map(p -> p.getNameAsString()).toList().contains(mock))
+                {
+                    System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
+                }
+                else /*
+                      * la methode ne fait pas parti des declarations de la classe. Méthode privée de la classe ou Méthode d'une autre
+                      * classe (instanciée ou static)
+                      */
+                {
+                    // System.out.println("PRIVATE METHOD: " + call.getScope().get().toString() + "=>" + call.getNameAsString());
 
-                List<MethodInfo> listMethodInfo = classInfo.getMethods().values().stream()
-                    .filter(m -> m.getName().equals(call.getNameAsString())) // && m.getParameters().equals(call.getArguments())
-                    .collect(Collectors.toList());
+                    List<MethodInfo> listMethodInfo = classInfo.getMethods().values().stream()
+                        .filter(m -> m.getName().equals(call.getNameAsString())) // && m.getParameters().equals(call.getArguments())
+                        .collect(Collectors.toList());
 
-                // listMethodInfo.forEach(m -> System.out.println("PRIVATEDDDDD METHOD: " + m.getName()));
+                    // listMethodInfo.forEach(m -> System.out.println("PRIVATEDDDDD METHOD: " + m.getName()));
+                }
             }
         }
 
@@ -394,7 +399,7 @@ public class MethodTestGenerator
 
         /* gestion des sessions et session.getAttribute(...) */
         buildSession(methodInfo);
-        
+
         /* gestion du block contenant l'appel de la méthode et déclaration ds de paramètres de la methodes */
         if (exception.isEmpty())
         {
@@ -997,14 +1002,7 @@ public class MethodTestGenerator
                     {
                         /* géré dans addWhen car fait parti des calls */
 
-                        /*
-                         * MethodCallExpr methodCall = returnExpr.asMethodCallExpr(); // resolve pour obtenir signature de la methode
-                         * ResolvedMethodDeclaration resolvedMethod = methodCall.resolve(); // signature String signature =
-                         * resolvedMethod.getSignature(); if (methodInfo.getCalls().get(signature).getMethodCallExpr() != null) {
-                         * MethodCallInfo methodCallInfo = methodInfo.getCalls().get(signature); if
-                         * (!getListMocks().contains(classInfo.getClassName())) { getListMocks().add(classInfo.getClassName()); }
-                         * addWhen(methodCallInfo); }
-                         */
+                       
                         newValue = defaultValue(methodReturnType);
 
                     }
@@ -1330,13 +1328,13 @@ public class MethodTestGenerator
     {
         RequestAnalyser requestAnalyser = new RequestAnalyser();
         List<RequestAttributeInfo> requestAttributes = requestAnalyser.analyse(methodInfo);
-        List<  CodeBlock.Builder> blockParamMap = new ArrayList<CodeBlock.Builder>();
-        List<  CodeBlock.Builder> blockParameter = new ArrayList<CodeBlock.Builder>();
+        List<CodeBlock.Builder> blockParamMap = new ArrayList<CodeBlock.Builder>();
+        List<CodeBlock.Builder> blockParameter = new ArrayList<CodeBlock.Builder>();
         if (requestAttributes.isEmpty())
         {
             return;
         }
-        
+
         if (!getListMocks().contains("HttpServletRequest"))
         {
             getListMocks().add("HttpServletRequest");
@@ -1346,10 +1344,10 @@ public class MethodTestGenerator
 
         if (requestAttributes.stream().anyMatch(at -> "getParameterMap".equals(at.getRequestVariable())))
         {
-            ClassName mapClass = ClassName.get(Map.class);         // java.util.Map
+            ClassName mapClass = ClassName.get(Map.class); // java.util.Map
             ClassName hashMapClass = ClassName.get(HashMap.class);
             CodeBlock.Builder block = CodeBlock.builder();
-            block.add("Map<String, String[]> paramMap = new HashMap<String, String[]>()");
+            block.add("$T<String, String[]> paramMap = new $T<String, String[]>()", Map.class, HashMap.class);
             blockParamMap.add(block);
         }
         requestAttributes.forEach(attr -> {
@@ -1358,20 +1356,18 @@ public class MethodTestGenerator
                 CodeBlock.Builder block = CodeBlock.builder();
                 block.add("paramMap.put(\"$L\",new String[]{\"\"})", attr.getAttributeOrParamName());
                 blockParamMap.add(block);
-                
+
             }
-            else //getparameter()
+            else // getparameter()
             {
                 CodeBlock.Builder block = CodeBlock.builder();
                 block.add("when(mockHttpServletRequest.getParameter(\"$L\")).thenReturn(\"\")", attr.getAttributeOrParamName());
                 blockParameter.add(block);
             }
-           
 
         });
-        blockParamMap.forEach(b->mockitoBlocks.add(b.build()));
-        blockParameter.forEach(b->mockitoBlocks.add(b.build()));
-        
+        blockParamMap.forEach(b -> mockitoBlocks.add(b.build()));
+        blockParameter.forEach(b -> mockitoBlocks.add(b.build()));
 
     }
 

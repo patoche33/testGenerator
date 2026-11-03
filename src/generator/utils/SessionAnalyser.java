@@ -33,11 +33,15 @@ public class SessionAnalyser
         
         sessionAttributes.put("get", sessionGetAttributes);
         
-        methodInfo.getCalls().forEach((k,v)->{
-            
-            analyseExpression(v.getMethodCallExpr() );
-          
+        Map<String, List<MethodCallInfo>> ListCalls = methodInfo.getCalls();
+        ListCalls.forEach((k, list)->{
+            list.forEach((v)->{
+                
+                analyseExpression(v.getMethodCallExpr() );
+              
+            });
         });
+        
         
         sessionAttributes.put("set", sessionSetAttributes);
         return sessionAttributes;
