@@ -1313,10 +1313,17 @@ public class MethodTestGenerator
 
         // ajout des block verify(session).setAttribute(attr_name, attr_value);
 
+       
         sessionSetAttributes.forEach(attr -> {
             CodeBlock.Builder block = CodeBlock.builder();
+            
+           
+            
             block.add(
-                "verify(mockHttpSession).setAttribute(\"$L\", \"$L\")", attr.getAttibuteName(), attr.getValue());
+                "verify(mockHttpSession).setAttribute(\"$L\", $L)", 
+                attr.getAttibuteName(), 
+                matcher(attr.getVariableType())
+                );
 
             verifyBlocks.add(block.build());
 
@@ -1443,26 +1450,7 @@ public class MethodTestGenerator
 
     private String matcher(String e)
     {
-
-        String ret = switch (e.split("<")[0].trim())
-        {
-            case "String" -> "anyString";
-            case "char", "Character" -> "anyChar";
-            case "int", "Integer" -> "anyInt";
-            case "long", "Long" -> "anyLong";
-            case "double", "Double" -> "anyDouble";
-            case "boolean", "Boolean" -> "anyBoolean";
-            case "byte", "Byte" -> "anyByte";
-            case "short", "Short" -> "anyShor";
-            case "float", "Float" -> "anyFloat";
-            case "List" -> "anyList";
-            case "Map" -> "anyMap";
-            case "Set" -> "anySet";
-            case "Collection" -> "anyCollection";
-            case "Iterable" -> "anyIterable";
-            default -> "any";
-        };
-
+        String ret = ParseUtils.getMatcherByType(e);
         Imports.addStaticImport(Imports.ARG_MATCHERS, ret);
         return ret + "()";
 

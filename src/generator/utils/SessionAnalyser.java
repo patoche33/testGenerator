@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
@@ -23,6 +24,7 @@ public class SessionAnalyser
     {
         Map<String, List> sessionAttributes = new HashMap<>();
         
+      //gestion des getAttribute
         for (VariableDeclarator var : methodInfo.getVariables())
         {
             var.getInitializer().ifPresent(expr -> {
@@ -30,14 +32,14 @@ public class SessionAnalyser
             });
 
         }
-        
         sessionAttributes.put("get", sessionGetAttributes);
         
+        //gestion des setAttribute
         Map<String, List<MethodCallInfo>> ListCalls = methodInfo.getCalls();
         ListCalls.forEach((k, list)->{
             list.forEach((v)->{
                 
-                analyseExpression(v.getMethodCallExpr() );
+                analyseExpression(v.getMethodCallExpr(),  methodInfo.getVariables() );
               
             });
         });
@@ -47,7 +49,8 @@ public class SessionAnalyser
         return sessionAttributes;
 
     }
-
+    
+    //gestion des getAttribute
     private void analyseExpression(Expression expr, VariableDeclarator var)
     {
         if (expr.isCastExpr())
@@ -90,7 +93,9 @@ public class SessionAnalyser
         
 
     }
-    private void analyseExpression(MethodCallExpr expr)
+    
+    //gestion des setAttribute
+    private void analyseExpression(MethodCallExpr expr, List<VariableDeclarator> variables)
     {
        
         if (!"setAttribute".equals(expr.getNameAsString()) )
@@ -121,7 +126,15 @@ public class SessionAnalyser
             // Au cas où c'est autre chose (un chiffre direct, un appel de méthode, etc.)
             sessionAttrInfo.setValue( expr.getArgument(1).toString());
         }
-        
+        //alimente le type de l'attribut qui correspond à une varaible dans la methode
+        variables.stream().filter(
+           v->v.getNameAsString().equals(expr.getArgument(1).asNameExpr().getNameAsString())).findAny().ifPresent(
+                variable -> {
+                    sessionAttrInfo.setVariableType(  variable.getTypeAsString());
+                   
+                }
+            );
+       
       
         sessionSetAttributes.add(sessionAttrInfo);
         

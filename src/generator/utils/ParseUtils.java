@@ -659,4 +659,34 @@ public class ParseUtils
         return resolvedMethod instanceof JavassistMethodDeclaration;
     }
     
+    /**
+     * 
+     * Renvoie un matcher en fonction de son type
+     *
+     * @param type
+     * @return
+     */
+    public static String getMatcherByType(String type)
+    {
+        return switch (type.split("<")[0].trim())
+            {
+                case "String" -> "anyString";
+                case "char", "Character" -> "anyChar";
+                case "int", "Integer" -> "anyInt";
+                case "long", "Long" -> "anyLong";
+                case "double", "Double" -> "anyDouble";
+                case "boolean", "Boolean" -> "anyBoolean";
+                case "byte", "Byte" -> "anyByte";
+                case "short", "Short" -> "anyShor";
+                case "float", "Float" -> "anyFloat";
+                case "List" -> "anyList";
+                case "Map" -> "anyMap";
+                case "Set" -> "anySet";
+                case "Collection" -> "anyCollection";
+                case "Iterable" -> "anyIterable";
+                default -> "any";
+            };
+       
+        
+    }
    }
