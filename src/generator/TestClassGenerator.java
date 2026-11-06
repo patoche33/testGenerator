@@ -14,6 +14,7 @@ import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.DoStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
@@ -41,6 +42,7 @@ import generator.bean.ClassInfo;
 import generator.bean.FieldInfo;
 import generator.bean.MethodCallInfo;
 import generator.bean.MethodInfo;
+import generator.bean.VariableInfo;
 import generator.config.Config;
 import generator.utils.ParseUtils;
 import generator.utils.XmlInjection;
@@ -59,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TestClassGenerator
@@ -176,8 +179,12 @@ public class TestClassGenerator
                     {
                         methodInfo.setBody(method.getBody().get().toString());
                     }
-
+                    
+                  
                     methodInfo.setVariables(method.findAll(VariableDeclarator.class));
+                    
+                    
+                  
                     //expression d'assignations du genre "variable_x = 5"
                     methodInfo.setAssignExpressions(method.findAll(AssignExpr.class));
                     methodInfo.setThrownExceptions(method.getThrownExceptions());

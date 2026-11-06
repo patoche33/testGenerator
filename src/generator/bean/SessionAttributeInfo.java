@@ -13,6 +13,8 @@ public class SessionAttributeInfo
     private VariableDeclarator variable;
     
     private String value;
+    
+    private boolean IsLitteralValue;
 
     public String getRequestVariable()
     {
@@ -63,6 +65,18 @@ public class SessionAttributeInfo
     {
         this.value = value;
     }
+
+    public boolean isIsLitteralValue()
+    {
+        return IsLitteralValue;
+    }
+
+    public void setIsLitteralValue(boolean isLitteralValue)
+    {
+        IsLitteralValue = isLitteralValue;
+    }
+
+    
     
     
 }

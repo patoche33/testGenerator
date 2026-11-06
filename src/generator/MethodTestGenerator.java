@@ -48,6 +48,7 @@ import generator.bean.MethodInfo;
 import generator.bean.Mocks;
 import generator.bean.RequestAttributeInfo;
 import generator.bean.SessionAttributeInfo;
+import generator.bean.VariableInfo;
 import generator.utils.ParseUtils;
 import generator.utils.RequestAnalyser;
 import generator.utils.SessionAnalyser;
@@ -85,7 +86,7 @@ public class MethodTestGenerator
 
     private List<String> listFields;
 
-    /* code block declaration when donothing verify invocation */
+    /* code block utilisé à chaque methode */
     private List<CodeBlock> declarationBlocks;
 
     private List<CodeBlock> invocationBlocks;
@@ -99,9 +100,11 @@ public class MethodTestGenerator
     private List<String> commentBlocks;
 
     private List<String> methodGenererated;
-
+    
     /* clé = fqn valeur= simple name de la variable */
     private Map<String, String> variableBlocks;
+    
+   
 
     private TypeNameFactory typeNameFactory;
 
@@ -362,7 +365,7 @@ public class MethodTestGenerator
 
                             // Ajout du code block contenant when(method(param)).thenReturn()
                             // CodeBlock.Builder block =
-                            addWhen(methodCallInfo);
+                            addWhen(methodInfo,methodCallInfo );
                         }
                     }
                 }
@@ -391,10 +394,13 @@ public class MethodTestGenerator
         {
             methodeBuilder.addComment("Surcharge de la méthode " + methodInfo.getSignature());
         }
+        
+        SessionAnalyser sessionAnalyser = new SessionAnalyser();
+        methodInfo.setSessionAttributes(sessionAnalyser.analyse(methodInfo));
+        RequestAnalyser requestAnalyser = new RequestAnalyser();
+        methodInfo.setRequestAttributes(requestAnalyser.analyse(methodInfo));
+        
         /* gestion du HttpServletRequest */
-        // RequestAnalyser requestAnalyser = new RequestAnalyser();
-        // List<RequestAttributeInfo> requestAttributes = requestAnalyser.analyse(methodInfo);
-
         buildHttpServletRequest(methodInfo);
 
         /* gestion des sessions et session.getAttribute(...) */
@@ -534,16 +540,13 @@ public class MethodTestGenerator
      * @param classInfo
      * @param call
      */
-    private void addWhen(MethodCallInfo methodCallInfo)
+    private void addWhen(MethodInfo methodInfo, MethodCallInfo methodCallInfo)
     {
 
         MethodCallExpr call = methodCallInfo.getMethodCallExpr();
         ResolvedMethodDeclaration resolvedCall = methodCallInfo.getResolvedMethodDeclaration();
         String mock;
         String fqnMock;
-
-        // ajouter dans la liste des statics import
-        Imports.addStaticImport(Imports.MOCKITO, "when");
 
         // Soit le nom de l'instance de classe (pas de scope car la methode est dans la classe à tester)
         if (call.getScope().isEmpty())
@@ -616,6 +619,14 @@ public class MethodTestGenerator
                 "mock" + StringUtils.capitalize(mock),
                 methodName,
                 args);
+            
+            //memoriser la variable receptrice de $L.$L($L)
+            Optional<VariableDeclarator> variableDeclarator =call.getParentNode()
+                .filter(parent -> parent instanceof VariableDeclarator)
+                .map(parent -> (VariableDeclarator) parent);
+            if (variableDeclarator.isPresent()) {
+                methodInfo.getVariableWhens().put(variableDeclarator.get().getNameAsString(), returnValue);
+            }
         }
         else
         { // methode static => utilser MockedStatic de Mockito
@@ -636,6 +647,7 @@ public class MethodTestGenerator
 
         }
 
+       
         /* block when(methode(parametre).theReturn */
         mockitoBlocks.add(blockInvocation.build());
         /* block declaration de variables utilisées en ant que paramètre de la méthode */
@@ -1256,10 +1268,11 @@ public class MethodTestGenerator
 
     }
 
-    private void buildSession(MethodInfo methodInfo)
+    private void buildSession(MethodInfo methodInfo )
     {
-        SessionAnalyser sessionAnalyser = new SessionAnalyser();
-        Map<String, List> sessionAttributes = sessionAnalyser.analyse(methodInfo);
+        
+        Map<String, List<SessionAttributeInfo>> sessionAttributes =methodInfo.getSessionAttributes();
+        
         List<SessionAttributeInfo> sessionGetAttributes = sessionAttributes.get("get");
         List<SessionAttributeInfo> sessionSetAttributes = sessionAttributes.get("set");
 
@@ -1312,17 +1325,29 @@ public class MethodTestGenerator
         });
 
         // ajout des block verify(session).setAttribute(attr_name, attr_value);
-
-       
         sessionSetAttributes.forEach(attr -> {
             CodeBlock.Builder block = CodeBlock.builder();
+            String valueSetAttribute;
+            //si la valeur du setAttribute est une vaiable: chercher si pametre de methode, 
+            //si vient de httpServletRequest, si resultat de methode (dao) géré par when de Mockito 
+            //si la valeur du setAttribute est le resultat d'un appel d'une autre methode (ex dao)
+            //on recherche le resulatat de cet appel sroqué dans une varianle qui aura été mémorise
+            //lors du when de cete methode
             
-           
+            
+            if( methodInfo.getVariableWhens().containsKey(attr.getValue()))
+            {
+                valueSetAttribute = methodInfo.getVariableWhens().get(attr.getValue());
+            }
+            else //sinon on tulise le s matcher (any anyInt anyString...)
+            {
+                valueSetAttribute = matcher(attr.getVariableType());
+            }
             
             block.add(
                 "verify(mockHttpSession).setAttribute(\"$L\", $L)", 
                 attr.getAttibuteName(), 
-                matcher(attr.getVariableType())
+                valueSetAttribute
                 );
 
             verifyBlocks.add(block.build());
@@ -1333,9 +1358,10 @@ public class MethodTestGenerator
 
     private void buildHttpServletRequest(MethodInfo methodInfo)
     {
-        RequestAnalyser requestAnalyser = new RequestAnalyser();
-        List<RequestAttributeInfo> requestAttributes = requestAnalyser.analyse(methodInfo);
+       
+        List<RequestAttributeInfo> requestAttributes = methodInfo.getRequestAttributes();
         List<CodeBlock.Builder> blockParamMap = new ArrayList<CodeBlock.Builder>();
+        List<CodeBlock.Builder> blockParamMapWhen = new ArrayList<CodeBlock.Builder>();
         List<CodeBlock.Builder> blockParameter = new ArrayList<CodeBlock.Builder>();
         if (requestAttributes.isEmpty())
         {
@@ -1356,16 +1382,18 @@ public class MethodTestGenerator
             CodeBlock.Builder block = CodeBlock.builder();
             block.add("$T<String, String[]> paramMap = new $T<String, String[]>()", Map.class, HashMap.class);
             blockParamMap.add(block);
+            
+           
+            
         }
         requestAttributes.forEach(attr -> {
-            if ("getParameterMap".equals(attr.getRequestVariable()))
+            if ("get".equals(attr.getMethodCalled()))//"getParameterMap".equals(attr.getRequestVariable()))
             {
                 CodeBlock.Builder block = CodeBlock.builder();
                 block.add("paramMap.put(\"$L\",new String[]{\"\"})", attr.getAttributeOrParamName());
                 blockParamMap.add(block);
-
             }
-            else // getparameter()
+            else if ("getParameter".equals(attr.getMethodCalled()))// getparameter()
             {
                 CodeBlock.Builder block = CodeBlock.builder();
                 block.add("when(mockHttpServletRequest.getParameter(\"$L\")).thenReturn(\"\")", attr.getAttributeOrParamName());
@@ -1373,8 +1401,18 @@ public class MethodTestGenerator
             }
 
         });
-        blockParamMap.forEach(b -> mockitoBlocks.add(b.build()));
-        blockParameter.forEach(b -> mockitoBlocks.add(b.build()));
+        if (! blockParamMap.isEmpty())
+        {
+            blockParamMap.forEach(b -> mockitoBlocks.add(b.build()));
+            
+            CodeBlock.Builder blockWhen = CodeBlock.builder();
+            blockWhen.add("when(mockHttpServletRequest.getParameterMap()).thenReturn(paramMap)");
+            mockitoBlocks.add(blockWhen.build());
+            
+        }
+       
+        
+       
 
     }
 

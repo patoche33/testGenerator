@@ -42,6 +42,7 @@ public class MethodInfo {
     
     private boolean isInherited;
    
+    
     private List<VariableDeclarator> variables = new ArrayList<>();
     private List<AssignExpr> assignExpressions = new ArrayList<>();
     private List<IfStmt> ifStmts = new ArrayList<>();
@@ -51,6 +52,10 @@ public class MethodInfo {
     
     private Map<String, List<MethodCallInfo>> exceptions;
     
+   
+    private Map<String, String> variableWhens= new HashMap<>();
+    private Map<String, List<SessionAttributeInfo>> sessionAttributes;
+    private List<RequestAttributeInfo> requestAttributes;
    
     public MethodInfo()
     {
@@ -236,5 +241,37 @@ public class MethodInfo {
     {
         this.expressions = expressions;
     }
+
+    public Map<String, String> getVariableWhens()
+    {
+        return variableWhens;
+    }
+
+    public void setVariableWhens(Map<String, String> variableWhens)
+    {
+        this.variableWhens = variableWhens;
+    }
+
+    public Map<String, List<SessionAttributeInfo>> getSessionAttributes()
+    {
+        return sessionAttributes;
+    }
+
+    public void setSessionAttributes(Map<String, List<SessionAttributeInfo>> sessionAttributes)
+    {
+        this.sessionAttributes = sessionAttributes;
+    }
+
+    public List<RequestAttributeInfo> getRequestAttributes()
+    {
+        return requestAttributes;
+    }
+
+    public void setRequestAttributes(List<RequestAttributeInfo> requestAttributes)
+    {
+        this.requestAttributes = requestAttributes;
+    }
+
+   
     
 }
