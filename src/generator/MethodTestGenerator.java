@@ -48,7 +48,6 @@ import generator.bean.MethodInfo;
 import generator.bean.Mocks;
 import generator.bean.RequestAttributeInfo;
 import generator.bean.SessionAttributeInfo;
-import generator.bean.VariableInfo;
 import generator.utils.ParseUtils;
 import generator.utils.RequestAnalyser;
 import generator.utils.SessionAnalyser;
@@ -170,8 +169,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("TableauDeBordWebServiceImpl")
-                && methodInfo.getName().equals("findStratesRestit"))//
+            if (classInfo.getClassName().equals("RestitTracabiliteWebServiceImpl")
+                && methodInfo.getName().equals("recupListeTraceJson"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());

@@ -42,7 +42,6 @@ import generator.bean.ClassInfo;
 import generator.bean.FieldInfo;
 import generator.bean.MethodCallInfo;
 import generator.bean.MethodInfo;
-import generator.bean.VariableInfo;
 import generator.config.Config;
 import generator.utils.ParseUtils;
 import generator.utils.XmlInjection;
