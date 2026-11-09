@@ -169,8 +169,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("RestitTracabiliteWebServiceImpl")
-                && methodInfo.getName().equals("recupListeTraceJson"))//
+            if (classInfo.getClassName().equals("RestitIndicateursWebServiceImpl")
+                && methodInfo.getName().equals("findActivitesRestit"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -370,7 +370,7 @@ public class MethodTestGenerator
                 }
                 else if (methodInfo.getParameters().stream().map(p -> p.getNameAsString()).toList().contains(mock))
                 {
-                    System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
+                   // System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
                 }
                 else /*
                       * la methode ne fait pas parti des declarations de la classe. Méthode privée de la classe ou Méthode d'une autre

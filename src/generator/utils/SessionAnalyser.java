@@ -121,29 +121,54 @@ public class SessionAnalyser
         
         SessionAttributeInfo sessionAttrInfo = new SessionAttributeInfo();
         sessionAttrInfo.setRequestVariable(sessionCall.getScope().map(Expression::toString).orElse("request"));
+        //gestion de la clé (nom de l'attribut)
         if (expr.getArgument(0).isStringLiteralExpr()) {
             sessionAttrInfo.setAttibuteName( expr.getArgument(0).asStringLiteralExpr().getValue());
            
         } 
-        if (expr.getArgument(1).isNameExpr()) {
+        //gestion de la valeur associé à la clé
+        Expression valueExpr = expr.getArgument(1);
+        if (valueExpr.isNameExpr()) {
             // C'est un NameExpr (ex: nbrDelai)
             sessionAttrInfo.setValue( expr.getArgument(1).asNameExpr().getNameAsString());
             sessionAttrInfo.setIsLitteralValue(true);
             
+            //alimente le type de l'attribut qui correspond à une variable dans la methode
+           variables.stream().filter(
+                 v->v.getNameAsString().equals(expr.getArgument(1).asNameExpr().getNameAsString()))
+                 .findAny()
+                 .ifPresentOrElse(
+                    variable -> sessionAttrInfo.setVariableType(  variable.getTypeAsString()), 
+                    () -> {
+                         // Si pas trouvé dans les variables locales, on tente la résolution dynamique (ex: champ de classe)
+                        try
+                        {
+                            String resolvedType = valueExpr.calculateResolvedType().describe();
+                            sessionAttrInfo.setVariableType(resolvedType);
+                        } 
+                        catch (Exception e) {
+                            sessionAttrInfo.setVariableType("Unknown");
+                        }
+                    }
+            );
             
-        } else {
+        } 
+        else {
             // Au cas où c'est autre chose (un chiffre direct, un appel de méthode, etc.)
             sessionAttrInfo.setValue( expr.getArgument(1).toString());
             sessionAttrInfo.setIsLitteralValue(false);
+            try {
+                // Tente de résoudre le type dynamiquement grâce au Symbol Solver
+                // calculateResolvedType() renvoie un ResolvedType, .describe() donne son nom complet (ex: "java.lang.String")
+                String resolvedType = valueExpr.calculateResolvedType().describe();
+                sessionAttrInfo.setVariableType(resolvedType);
+            } 
+            catch (Exception e) {
+                // Si le SymbolSolver n'est pas configuré ou ne trouve pas le type (ex: classe manquante)
+                sessionAttrInfo.setVariableType("Unknown");
+            }
         }
-        //alimente le type de l'attribut qui correspond à une variable dans la methode
-        variables.stream().filter(
-           v->v.getNameAsString().equals(expr.getArgument(1).asNameExpr().getNameAsString())).findAny().ifPresent(
-                variable -> {
-                    sessionAttrInfo.setVariableType(  variable.getTypeAsString());
-                    
-                }
-            );
+        
        
       
         sessionSetAttributes.add(sessionAttrInfo);
