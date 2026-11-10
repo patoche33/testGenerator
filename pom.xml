@@ -121,6 +121,24 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.13.0</version> <!-- Assurez-vous d'avoir une version récente -->
+    <configuration>
+        <annotationProcessorPaths>
+            <!-- Permet de générer le fichier Log4j2Plugins.dat à la compilation -->
+            <path>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>2.24.1</version> <!-- Alignez la version sur celle de votre projet -->
+            </path>
+        </annotationProcessorPaths>
+        <annotationProcessors>
+            <processor>org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor</processor>
+        </annotationProcessors>
+    </configuration>
+</plugin>
         </plugins>
     </build>
 </project>

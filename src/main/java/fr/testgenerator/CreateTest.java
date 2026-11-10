@@ -24,14 +24,19 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import fr.testgenerator.config.Config;
+import fr.testgenerator.logging.GuiAppender;
 
 public class CreateTest
 {
 
     public static void main(String[] args) throws IOException
     {
+        final Logger logger = LogManager.getLogger(CreateTest.class);
+
         Boolean gui = false;
         for(String arg: args)
         {
@@ -52,6 +57,7 @@ public class CreateTest
     
     private static void startGui()
     {
+        
         System.out.println("*** Démarrage intefrace graphique ***");
         // Lancer l'interface en toute sécurité sur le fil d'exécution Swing
        
@@ -63,7 +69,6 @@ public class CreateTest
 
             //panneau conteneur
             JPanel panel = new JPanel();
-
             // composants
             JButton buttonGo = new JButton("Generate");
             
@@ -71,20 +76,28 @@ public class CreateTest
             JTextArea logTextArea;
             logTextArea = new JTextArea();
             logTextArea.setEditable(false);
-            logTextArea.setBackground(Color.BLACK);
-            logTextArea.setForeground(Color.GREEN); // Style console rétro !
+           // logTextArea.setBackground(Color.BLACK);
+           // logTextArea.setForeground(Color.GREEN); // Style console rétro !
 
             JScrollPane scrollPane = new JScrollPane(logTextArea);
-            
+            GuiAppender.setLogConsumer(messageDeLog -> {
+            // Assure la mise à jour dans le Thread Graphique (EDT)
+            SwingUtilities.invokeLater(() -> {
+                logTextArea.append(messageDeLog);
+                // Défilement automatique
+                logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
+                });
+             });
 
             // Ajouter une action au clic du bouton
             buttonGo.addActionListener(e -> {
                 startProgram();
             });
 
-            // 4. Ajouter le bouton au panneau, puis le panneau à la fenêtre
+            //  au panneau, puis le panneau à la fenêtre
             panel.add(buttonGo);
             mainFrame.setContentPane(panel);
+            mainFrame.setContentPane(scrollPane);
 
             // 5. Rendre la fenêtre visible
             mainFrame.setVisible(true);
