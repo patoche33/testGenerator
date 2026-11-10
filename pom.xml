@@ -124,7 +124,7 @@
             <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-compiler-plugin</artifactId>
-    <version>3.13.0</version> <!-- Assurez-vous d'avoir une version récente -->
+    <version>3.8.1</version> <!-- Assurez-vous d'avoir une version récente -->
     <configuration>
         <annotationProcessorPaths>
             <!-- Permet de générer le fichier Log4j2Plugins.dat à la compilation -->

@@ -35,7 +35,7 @@ public class CreateTest
 
     public static void main(String[] args) throws IOException
     {
-        final Logger logger = LogManager.getLogger(CreateTest.class);
+       
 
         Boolean gui = false;
         for(String arg: args)
@@ -68,7 +68,7 @@ public class CreateTest
             mainFrame.setLocationRelativeTo(null); // Centrer la fenêtre
 
             //panneau conteneur
-            JPanel panel = new JPanel();
+            JPanel panel = new JPanel(new BorderLayout());
             // composants
             JButton buttonGo = new JButton("Generate");
             
@@ -91,13 +91,28 @@ public class CreateTest
 
             // Ajouter une action au clic du bouton
             buttonGo.addActionListener(e -> {
-                startProgram();
+                // Désactiver le bouton pendant le traitement pour éviter les doubles clics
+                buttonGo.setEnabled(false);
+                new Thread(()->{
+                    try 
+                    {
+                        startProgram(); 
+                    }
+                    finally
+                    {
+                        // Réactiver le bouton une fois le programme terminé
+                        // SwingUtilities.invokeLater est requis car on modifie un composant GUI depuis un autre thread
+                        SwingUtilities.invokeLater(() -> buttonGo.setEnabled(true));
+                    }
+                }).start();
+                
             });
 
             //  au panneau, puis le panneau à la fenêtre
-            panel.add(buttonGo);
+            panel.add(buttonGo,  BorderLayout.NORTH);
+            panel.add(scrollPane,  BorderLayout.CENTER);
             mainFrame.setContentPane(panel);
-            mainFrame.setContentPane(scrollPane);
+            
 
             // 5. Rendre la fenêtre visible
             mainFrame.setVisible(true);

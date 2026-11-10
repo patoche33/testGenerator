@@ -30,6 +30,10 @@ import fr.testgenerator.utils.ParseUtils;
 import fr.testgenerator.utils.XmlInjection;
 
 import javax.lang.model.element.Modifier;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,10 +43,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TestClassGenerator
 {
+     final Logger logger = LogManager.getLogger(TestClassGenerator.class);
+
     /* Javaparser configuré avec JavaSymbolResolver */
     private static JavaParser javaParser;
 
@@ -72,9 +79,15 @@ public class TestClassGenerator
 
         // Utilisation d'un try-with-resources pour fermer le flux de fichiers proprement
         try (Stream<Path> stream = Files.walk(start))
-        {
-            stream.filter(f -> f.toString().endsWith(".java"))
-                .forEach(f -> {
+        {   
+            List<Path> javaFiles = stream
+            .filter(f -> f.toString().endsWith(".java"))
+           .collect(Collectors.toList());
+
+             long totalFiles = javaFiles.size();
+            logger.info("Nombre de fichiers Java trouvés : " + totalFiles);
+           
+           javaFiles.forEach(f -> {
                     try
                     {
                         parse(f);
@@ -269,13 +282,12 @@ public class TestClassGenerator
         String className = clazz.getNameAsString();
         ClassInfo classInfo = classes.get(pkg + "." + className);
 
+        logger.info("Traitement de " + pkg + "." + className);
         System.out.println("Traitement de " + pkg + "." + className);
+
         /* Ecriture de la classe de test */
  
-        if (className.equals("RegieServiceImpl" ))
-        {
-            System.out.println("DEBUG CLASSE==>" + className);
-        }
+        
         TypeSpec.Builder testClass = TypeSpec.classBuilder(className + "Test")
             .addModifiers(Modifier.PUBLIC);
 
