@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Remplacez com.monapp.logging par le package réel de votre Appender -->
+<Configuration status="WARN" packages="com.monapp.logging">
+    
+    <Appenders>
+        <!-- Console classique pour le mode CLI -->
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- Votre Appender sur mesure pour la GUI -->
+        <GuiAppender name="GuiAppender">
+            <PatternLayout pattern="[%level] %logger{1} - %msg%n"/>
+        </GuiAppender>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="GuiAppender"/>
+        </Root>
+    </Loggers>
+    
+</Configuration>

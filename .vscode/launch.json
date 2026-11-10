@@ -4,24 +4,22 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "java",
             "name": "CreateTest",
             "request": "launch",
-            "mainClass": "generator.CreateTest",
+            "mainClass": "main.java.fr.generator.CreateTest",
             "projectName": "Tests",
-            "args": 
-            [
-             "--gui"
-            ],
+             "args": [
+                "--gui"
+            ]
         },
+      
         {
             "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"
-        },
-       
+        }
     ]
 }
