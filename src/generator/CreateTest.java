@@ -15,7 +15,9 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,35 +29,91 @@ public class CreateTest
 
     public static void main(String[] args) throws IOException
     {
-        // interface graphique swing
-        // loadJframe();
+        Boolean gui = false;
+        for(String arg: args)
+        {
+             if ("--gui".equalsIgnoreCase(arg)) {
+               gui = true;
+            }
+        }
 
+        if (gui)
+        {
+            startGui();
+        }
+        else 
+        {
+            startProgram();
+        }
+    }
+    
+    private static void startGui()
+    {
+        System.out.println("*** Démarrage intefrace graphique ***");
+        // Lancer l'interface en toute sécurité sur le fil d'exécution Swing
+       
+            // 1. Créer la fenêtre principale
+            JFrame fenetre = new JFrame("Mon Application Java");
+            fenetre.setSize(400, 300);
+            fenetre.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            fenetre.setLocationRelativeTo(null); // Centrer la fenêtre
+
+            // 2. Créer un panneau conteneur
+            JPanel panneau = new JPanel();
+
+            // 3. Créer un composant (bouton)
+            JButton bouton = new JButton("Cliquez-moi");
+            
+            // Ajouter une action au clic du bouton
+            bouton.addActionListener(e -> {
+                System.out.println("Bouton cliqué !");
+            });
+
+            // 4. Ajouter le bouton au panneau, puis le panneau à la fenêtre
+            panneau.add(bouton);
+            fenetre.setContentPane(panneau);
+
+            // 5. Rendre la fenêtre visible
+            fenetre.setVisible(true);
+        
+    }
+
+    private static void startProgram()
+    {
         System.out.println("*** Début traitement ***");
         try
         {
-            String sourceProjet = Config.getSOURCEPROJECT();
+            String sourceClasses = Config.getROOTCLASSES();
             String out = Config.getOUTPUT();
             List<String> classes = Config.getCLASSES();
+            String xml = Config.getXMLINJECTION();
     
-            if (sourceProjet != null && out != null && !classes.isEmpty() )
+            if (sourceClasses != null && out != null && !classes.isEmpty() )
             {
-                /* Lister les classe set méthodes */
-                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceProjet);
+                /* Lister les classes et méthodes */
+                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses, xml);
         
                 /* générer les classes de test */
                 System.out.println("*** Création des classes de test ***");
                 for (String classe : classes)
                 {
-                    // System.out.println("CLASSE=" +classe);
-                    String source =  classe;
-                    testClassGenerator.generate(new File(source), Paths.get(out));
+                    try
+                    {
+                        String source =  classe;
+                        testClassGenerator.generate(new File(source), Paths.get(out));
+                    }
+                    catch (Exception e)
+                    {
+                        System.out.println("Erreur lors du traitement du fichier '" + classe + "' : " + e.getMessage());
+                    }
+                    
                 }
             }
            
         }
         catch (Exception e)
         {
-            System.out.println("Traitement interrompu. "+e.getMessage());
+            System.out.println("Erreur générale d'initialisation : " + e.getMessage());
         }
         System.out.println("*** Fin traitement ***");
     }
