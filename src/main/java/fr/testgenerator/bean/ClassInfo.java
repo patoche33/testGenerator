@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.bean;
+package fr.testgenerator.bean;
 
 import java.io.File;
 import java.nio.file.Path;

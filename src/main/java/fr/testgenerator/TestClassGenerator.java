@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator;
+package fr.testgenerator;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
@@ -22,12 +22,12 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.squareup.javapoet.*;
 import com.squareup.javapoet.JavaFile.Builder;
 
-import main.java.fr.testgenerator.bean.ClassInfo;
-import main.java.fr.testgenerator.bean.FieldInfo;
-import main.java.fr.testgenerator.bean.MethodCallInfo;
-import main.java.fr.testgenerator.bean.MethodInfo;
-import main.java.fr.testgenerator.utils.ParseUtils;
-import main.java.fr.testgenerator.utils.XmlInjection;
+import fr.testgenerator.bean.ClassInfo;
+import fr.testgenerator.bean.FieldInfo;
+import fr.testgenerator.bean.MethodCallInfo;
+import fr.testgenerator.bean.MethodInfo;
+import fr.testgenerator.utils.ParseUtils;
+import fr.testgenerator.utils.XmlInjection;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;

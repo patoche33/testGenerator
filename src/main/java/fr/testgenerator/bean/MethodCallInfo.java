@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.bean;
+package fr.testgenerator.bean;
 
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;

@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator;
+package fr.testgenerator;
 
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.CompilationUnit;
@@ -9,7 +9,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
-import main.java.fr.testgenerator.bean.ClassInfo;
+import fr.testgenerator.bean.ClassInfo;
 
 import java.util.HashMap;
 import java.util.Map;

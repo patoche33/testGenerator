@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.utils;
+package fr.testgenerator.utils;
 
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ArrayAccessExpr;
@@ -7,9 +7,9 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.resolution.types.ResolvedType;
 
-import main.java.fr.testgenerator.bean.MethodInfo;
-import main.java.fr.testgenerator.bean.Mocks;
-import main.java.fr.testgenerator.bean.RequestAttributeInfo;
+import fr.testgenerator.bean.MethodInfo;
+import fr.testgenerator.bean.Mocks;
+import fr.testgenerator.bean.RequestAttributeInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;

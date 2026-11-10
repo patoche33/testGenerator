@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator;
+package fr.testgenerator;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;

@@ -8,13 +8,13 @@
             "type": "java",
             "name": "CreateTest",
             "request": "launch",
-            "mainClass": "main.java.fr.generator.CreateTest",
+            "mainClass": "fr.testgenerator.CreateTest",
             "projectName": "Tests",
              "args": [
                 "--gui"
             ]
         },
-      
+        
         {
             "type": "java",
             "name": "Current File",

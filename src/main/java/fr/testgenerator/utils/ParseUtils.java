@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.utils;
+package fr.testgenerator.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +34,8 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 
-import main.java.fr.testgenerator.bean.ElementExpression;
-import main.java.fr.testgenerator.bean.MethodInfo;
+import fr.testgenerator.bean.ElementExpression;
+import fr.testgenerator.bean.MethodInfo;
 
 public class ParseUtils
 {

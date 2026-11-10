@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.config;
+package fr.testgenerator.config;
 
 import java.io.File;
 import java.io.FileInputStream;

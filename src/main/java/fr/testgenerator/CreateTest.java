@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator;
+package fr.testgenerator;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -25,8 +25,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.StringUtils;
 
-import main.java.fr.testgenerator.TestClassGenerator;
-import main.java.fr.testgenerator.config.Config;
+import fr.testgenerator.config.Config;
 
 public class CreateTest
 {

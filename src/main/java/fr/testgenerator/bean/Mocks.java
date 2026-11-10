@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.bean;
+package fr.testgenerator.bean;
 
 import java.util.ArrayList;
 import java.util.Arrays;

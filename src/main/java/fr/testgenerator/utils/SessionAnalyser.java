@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.utils;
+package fr.testgenerator.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,11 +10,11 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
-import main.java.fr.testgenerator.bean.ClassInfo;
-import main.java.fr.testgenerator.bean.FieldInfo;
-import main.java.fr.testgenerator.bean.MethodCallInfo;
-import main.java.fr.testgenerator.bean.MethodInfo;
-import main.java.fr.testgenerator.bean.SessionAttributeInfo;
+import fr.testgenerator.bean.ClassInfo;
+import fr.testgenerator.bean.FieldInfo;
+import fr.testgenerator.bean.MethodCallInfo;
+import fr.testgenerator.bean.MethodInfo;
+import fr.testgenerator.bean.SessionAttributeInfo;
 
 public class SessionAnalyser
 {

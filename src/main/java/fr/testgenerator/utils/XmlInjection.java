@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator.utils;
+package fr.testgenerator.utils;
 
 import java.io.File;
 import java.util.ArrayList;

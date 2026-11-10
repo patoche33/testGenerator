@@ -1,4 +1,4 @@
-package main.java.fr.testgenerator;
+package fr.testgenerator;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ClassName;
