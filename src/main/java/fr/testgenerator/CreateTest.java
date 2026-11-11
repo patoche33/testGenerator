@@ -2,7 +2,9 @@ package fr.testgenerator;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -10,9 +12,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -20,8 +24,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -57,7 +63,7 @@ public class CreateTest
     
     private static void startGui()
     {
-        
+          setFont(new Font("SansSerif", Font.PLAIN, 20));
         System.out.println("*** Démarrage intefrace graphique ***");
         // Lancer l'interface en toute sécurité sur le fil d'exécution Swing
        
@@ -67,11 +73,40 @@ public class CreateTest
             mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             mainFrame.setLocationRelativeTo(null); // Centrer la fenêtre
 
-            //panneau conteneur
-            JPanel panel = new JPanel(new BorderLayout());
-            // composants
-            JButton buttonGo = new JButton("Generate");
+            //panneau principal avec marges de 10px
+            JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            //panneau des zones de texte et boutons de sélecion
+            JPanel topPanel = new JPanel(new BorderLayout(5, 5));
+            JButton buttonSrcProj = new JButton("Sélectionner le dossier source du projet");
+            buttonSrcProj.setPreferredSize(new Dimension(160, 30)); // Taille fixe du bouton
             
+           
+            JTextField fieldScrProj= new JTextField();
+            fieldScrProj.setEditable(false); // Empêche la saisie manuelle erronée
+            fieldScrProj.setPreferredSize(new Dimension(400, 30));
+
+            buttonSrcProj.addActionListener(e -> choiceDir(fieldScrProj));
+
+            //ajout au panneau topPanel
+            topPanel.add(new JLabel("Fichier sélectionné : "), BorderLayout.WEST);
+            topPanel.add(fieldScrProj, BorderLayout.CENTER);
+            topPanel.add(buttonSrcProj, BorderLayout.EAST);
+
+            //ajout au panneau principal
+            mainPanel.add(topPanel, BorderLayout.NORTH);
+
+
+
+            //panneau du bouton generate et logs
+            JPanel middlePanel = new JPanel(new BorderLayout(5, 5));
+
+            // Bouton generate
+            JButton buttonGo = new JButton("Generate");
+            buttonGo.setFont(new Font("SansSerif", Font.BOLD, 18));
+            buttonGo.setPreferredSize(new Dimension(200, 50));
+
             // Configuration de la zone de texte pour les logs
             JTextArea logTextArea;
             logTextArea = new JTextArea();
@@ -80,6 +115,20 @@ public class CreateTest
            // logTextArea.setForeground(Color.GREEN); // Style console rétro !
 
             JScrollPane scrollPane = new JScrollPane(logTextArea);
+            scrollPane.setPreferredSize(new Dimension(500, 200));
+
+
+            //  au panneau, puis le panneau à la fenêtre
+            middlePanel.add(buttonGo,  BorderLayout.NORTH);
+            middlePanel.add(scrollPane,  BorderLayout.CENTER);
+                       
+            mainPanel.add(middlePanel, BorderLayout.CENTER);
+
+         mainFrame.add(mainPanel);
+            // 5. Rendre la fenêtre visible
+            mainFrame.setVisible(true);
+
+
             GuiAppender.setLogConsumer(messageDeLog -> {
             // Assure la mise à jour dans le Thread Graphique (EDT)
             SwingUtilities.invokeLater(() -> {
@@ -108,15 +157,42 @@ public class CreateTest
                 
             });
 
-            //  au panneau, puis le panneau à la fenêtre
-            panel.add(buttonGo,  BorderLayout.NORTH);
-            panel.add(scrollPane,  BorderLayout.CENTER);
-            mainFrame.setContentPane(panel);
             
-
-            // 5. Rendre la fenêtre visible
-            mainFrame.setVisible(true);
         
+    }
+
+    // Ouvre la boîte de dialogue et met à jour le champ texte
+    private static void choiceDir( JTextField textField) {
+        JFileChooser dirChooser = new JFileChooser();
+    
+        // Force la sélection de dossiers uniquement
+        dirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        /// Vérifie le texte du JTextField (et non du JButton)
+        String currentPath = textField.getText();
+         if (currentPath != null && !currentPath.isEmpty()) {
+           File dir = new File(currentPath);
+             if (dir.exists()) {
+                dirChooser.setCurrentDirectory(dir); // Ouvre directement dans le dossier
+            }
+        }
+
+        int resultat = dirChooser.showOpenDialog(textField);
+        if (resultat == JFileChooser.APPROVE_OPTION) {
+            File dossierChoisi = dirChooser.getSelectedFile();
+            textField.setText(dossierChoisi.getAbsolutePath());
+        }
+    }
+
+    private static void setFont(Font police) {
+        Enumeration<Object> cles = UIManager.getDefaults().keys();
+        while (cles.hasMoreElements()) {
+            Object cle = cles.nextElement();
+            Object valeur = UIManager.get(cle);
+            if (valeur instanceof javax.swing.plaf.FontUIResource) {
+                UIManager.put(cle, new javax.swing.plaf.FontUIResource(police));
+            }
+        }
     }
 
     private static void startProgram()
