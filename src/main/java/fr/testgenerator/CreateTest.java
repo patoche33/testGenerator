@@ -145,6 +145,7 @@ public class CreateTest
                 new Thread(()->{
                     try 
                     {
+                        logTextArea.setText("");
                         startProgram(); 
                     }
                     finally

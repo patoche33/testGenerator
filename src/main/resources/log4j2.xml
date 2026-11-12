@@ -5,12 +5,14 @@
     <Appenders>
         <!-- Console classique pour le mode CLI -->
         <Console name="ConsoleAppender" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"></PatternLayout> 
+             
         </Console>
 
         <!-- Votre Appender sur mesure pour la GUI -->
         <GuiAppender name="GuiAppender">
-            <PatternLayout pattern="[%level] %logger{1} - %msg%n"/>
+            <!-- <PatternLayout pattern="[%level] %logger{1} - %msg%n"/> -->
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level  - %msg%n"/>
         </GuiAppender>
     </Appenders>
 

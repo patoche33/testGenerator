@@ -69,8 +69,8 @@ public class TestClassGenerator
         }
         catch (Exception e)
         {
-            System.err
-                .println("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
+            logger.error("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
+            //System.err.println("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
         }
 
         Path start = Paths.get(rootProject);
@@ -283,7 +283,7 @@ public class TestClassGenerator
         ClassInfo classInfo = classes.get(pkg + "." + className);
 
         logger.info("Traitement de " + pkg + "." + className);
-        System.out.println("Traitement de " + pkg + "." + className);
+        //System.out.println("Traitement de " + pkg + "." + className);
 
         /* Ecriture de la classe de test */
  

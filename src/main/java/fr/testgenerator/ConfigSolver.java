@@ -47,7 +47,7 @@ public class ConfigSolver
 
         // Permet de résoudre les classes du projet (fichiers .java locaux)
         // (ex: "src/main/java")
-        File srcDirectory = new File(Config.getROOTCLASSES());
+        File srcDirectory = new File(Config.getROOTPROJECT());
         if (srcDirectory.exists())
         {
             typeSolver.add(new JavaParserTypeSolver(srcDirectory));
