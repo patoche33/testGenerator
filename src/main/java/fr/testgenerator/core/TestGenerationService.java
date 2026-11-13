@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import fr.testgenerator.core.bean.GenerationProgressListener;
 import fr.testgenerator.core.config.Config;
 import fr.testgenerator.core.generator.TestClassGenerator;
 import fr.testgenerator.ui.controller.MainController;
@@ -15,7 +16,7 @@ public class TestGenerationService
 {
     private static Logger logger = LogManager.getLogger(TestGenerationService.class);
 
-    public static void startProgram()
+    public static void startProgram(GenerationProgressListener listener)
     {
         try
         {
@@ -32,13 +33,20 @@ public class TestGenerationService
                 TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses, xml);
         
                 /* générer les classes de test */
-                logger.info("*** Création des classes de test ***");
-                 for (String classe : classes)
-                {
+                listener.onScanCompleted(classes.size());
+                                
+                logger.info("*** Création des classes de test - " + classes.size() + " classes à traiter ***");
+                int indice=0;
+                for (String classe : classes)
+                 {
                     try
                     {
                         String source =  classe;
                         testClassGenerator.generate(new File(source), Paths.get(out));
+                        
+                        listener.onClassProcessed(indice +1, classes.size(), classe);
+                        indice ++;
+                        
                     }
                     catch (Exception e)
                     {
@@ -46,7 +54,9 @@ public class TestGenerationService
                         }
                     
                 }
-                 logger.info("Génération terminée  !");
+                
+                listener.onGenerationCompleted();
+                logger.info("Génération terminée  !");
             }
            
         }

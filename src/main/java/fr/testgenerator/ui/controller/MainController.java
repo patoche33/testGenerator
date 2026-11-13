@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import fr.testgenerator.core.TestGenerationService;
 import fr.testgenerator.core.config.Config;
+import fr.testgenerator.core.bean.GenerationProgressListener;
 import fr.testgenerator.core.logging.GuiAppender;
 import fr.testgenerator.ui.view.MainWindow;
 
@@ -112,7 +113,45 @@ public class MainController {
             protected Void doInBackground() throws Exception {
                 // "publish" envoie les messages de manière sécurisée vers le thread graphique
                 //service.generateTests(options, this::publish);
-                service.startProgram();
+                service.startProgram(new GenerationProgressListener(){
+                    @Override
+                    public void onScanStarted(String message) {
+                        publish(message);
+                        SwingUtilities.invokeLater(() -> {
+                            view.getProgressBar().setIndeterminate(true); // Animation de chargement
+                            view.getProgressBar().setString("Scan des fichiers en cours...");
+                        });
+                    }
+                    
+                    @Override
+                    public void onScanCompleted(int totalFiles) {
+                        publish(totalFiles + " classes trouvées.");
+                        SwingUtilities.invokeLater(() -> {
+                            view.getProgressBar().setIndeterminate(false);
+                            view.getProgressBar().setMaximum(totalFiles);
+                            view.getProgressBar().setValue(0);
+                            view.getProgressBar().setString("0 / " + totalFiles);
+                        });
+                    }
+                    
+                    @Override
+                    public void onClassProcessed(int currentIndex, int totalFiles, String className) {
+                        publish("[" + currentIndex + "/" + totalFiles + "] Traitement de " + className);
+                        SwingUtilities.invokeLater(() -> {
+                            view.getProgressBar().setValue(currentIndex);
+                            int percent = (int) ((currentIndex * 100.0) / totalFiles);
+                            view.getProgressBar().setString(percent + "% (" + currentIndex + "/" + totalFiles + ")");
+                        });
+                    }
+
+                    @Override
+                    public void onGenerationCompleted() {
+                        SwingUtilities.invokeLater(() -> {
+                            view.getProgressBar().setString("Terminé !");
+                        });
+                    }    
+                });
+                
                 return null;
             }
 

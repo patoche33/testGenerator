@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -26,6 +27,8 @@ public class MainWindow extends JFrame
     private JTextField fieldScrProj;
 
     private JTextArea logTextArea;
+    
+    private JProgressBar progressBar;
 
     public MainWindow()
     {
@@ -81,20 +84,31 @@ public class MainWindow extends JFrame
         // logTextArea.setBackground(Color.BLACK);
         // logTextArea.setForeground(Color.GREEN); // Style console rétro !
 
+        //barre de progression
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(true); // Affiche le pourcentage (ex: "45%")
+        progressBar.setString("En attente...");
+        progressBar.setPreferredSize(new Dimension(500, 25));
+       
+        
+        
         JScrollPane scrollPane = new JScrollPane(logTextArea);
         scrollPane.setPreferredSize(new Dimension(500, 200));
 
-        // au panneau, puis le panneau à la fenêtre
+        //ajouter au panneau middle
         middlePanel.add(buttonGo, BorderLayout.NORTH);
         middlePanel.add(scrollPane, BorderLayout.CENTER);
+        middlePanel.add(progressBar, BorderLayout.SOUTH);
 
+        //ajouter au panneau principal
         mainPanel.add(middlePanel, BorderLayout.CENTER);
 
         //Ajout du panneau à la fenêtre (setVisible(true) est géré par GuiLauncher)
         setContentPane(mainPanel);
 
     }
-
+    
+    //getter des composants
     public JButton getButtonSrcProj()
     {
         return buttonSrcProj;
@@ -114,9 +128,14 @@ public class MainWindow extends JFrame
     {
         return logTextArea;
     }
-
+    
+    public JProgressBar getProgressBar()
+    {
+        return progressBar;
+    }
+    
     /**
-     * Définir la font globale DOCUMENTEZ_MOI
+     * Définir la font globale 
      *
      * @param police
      */

@@ -56,6 +56,8 @@ public class TestClassGenerator
     private Map<String, ClassInfo> classes = new HashMap<>();
 
     private Map<String, List<String>> xmlProperties = new HashMap<>();
+    
+    private long totalFiles;
 
     public TestClassGenerator(String rootProject, String xml) throws IOException
     {
@@ -83,7 +85,7 @@ public class TestClassGenerator
             .filter(f -> f.toString().endsWith(".java"))
            .collect(Collectors.toList());
 
-             long totalFiles = javaFiles.size();
+            totalFiles = javaFiles.size();
             logger.info("Nombre de fichiers Java trouvés : " + totalFiles);
            
            javaFiles.forEach(f -> {
@@ -100,7 +102,8 @@ public class TestClassGenerator
            
         }
     }
-
+    
+    
     /*
      * Parser chaque classe du projet afin de lister les classes et les méthodes de chaque classe
      */

@@ -16,9 +16,15 @@ public class CliRunner
 
 
 
-    public void run(String[] args)
+    public int run(String[] args)
     {
-        
-        generationService.startProgram();
+        try {
+            generationService.startProgram(new ConsoleProgressListener());
+            return 0; // Code de succès
+        }
+        catch (Exception e) {
+            System.err.println("\n[ERREUR] " + e.getMessage());
+            return 1; // Code d'erreur
+        }
     }
 }

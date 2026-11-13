@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import fr.testgenerator.core.generator.TestClassGenerator;
+
 
 public final class Config
 {
