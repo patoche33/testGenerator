@@ -89,7 +89,7 @@
                             <addClasspath>true</addClasspath>
                             <!-- Remplacez par le chemin complet de votre classe
                             principale -->
-                            <mainClass>generator.CreateTest</mainClass>
+                            <mainClass>fr.testgenerator.AppLauncher</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -104,7 +104,7 @@
                         <manifest>
                             <!-- Remplacer par le chemin exact de votre classe
                             principale -->
-                            <mainClass>generator.CreateTest</mainClass>
+                            <mainClass>fr.testgenerator.AppLauncher</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

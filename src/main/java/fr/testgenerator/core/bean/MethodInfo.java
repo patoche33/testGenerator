@@ -1,4 +1,4 @@
-package fr.testgenerator.bean;
+package fr.testgenerator.core.bean;
 
 import java.util.ArrayList;
 import java.util.HashMap;

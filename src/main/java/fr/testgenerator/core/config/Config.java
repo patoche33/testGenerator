@@ -1,4 +1,4 @@
-package fr.testgenerator.config;
+package fr.testgenerator.core.config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import fr.testgenerator.TestClassGenerator;
+import fr.testgenerator.core.generator.TestClassGenerator;
 
 public final class Config
 {

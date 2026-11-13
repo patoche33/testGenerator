@@ -33,15 +33,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import fr.testgenerator.config.Config;
-import fr.testgenerator.logging.GuiAppender;
+import fr.testgenerator.cli.CliRunner;
+import fr.testgenerator.core.TestGenerationService;
+import fr.testgenerator.core.config.Config;
+import fr.testgenerator.core.generator.TestClassGenerator;
+import fr.testgenerator.core.logging.GuiAppender;
+import fr.testgenerator.ui.GuiLauncher;
 
-public class CreateTest
+public class AppLauncher
 {
 
     public static void main(String[] args) throws IOException
     {
-       
+        //Instanciation du moteur métier 
+        TestGenerationService generationService = new TestGenerationService();
+
 
         Boolean gui = false;
         for(String arg: args)
@@ -53,15 +59,20 @@ public class CreateTest
 
         if (gui)
         {
-            startGui();
+            //startGui();
+            GuiLauncher.launch(generationService);
         }
         else 
         {
-            startProgram();
+            //startProgram();
+            CliRunner cliRunner = new CliRunner(generationService);
+            cliRunner.run(args);
         }
     }
+   
     
-    private static void startGui()
+    /*
+     private static void startGui()
     {
           setFont(new Font("SansSerif", Font.PLAIN, 20));
         System.out.println("*** Démarrage intefrace graphique ***");
@@ -161,7 +172,9 @@ public class CreateTest
             
         
     }
-
+ */
+  
+    /*
     // Ouvre la boîte de dialogue et met à jour le champ texte
     private static void choiceDir( JTextField textField) {
         JFileChooser dirChooser = new JFileChooser();
@@ -208,10 +221,10 @@ public class CreateTest
     
             if (sourceClasses != null && out != null && !classes.isEmpty() )
             {
-                /* Lister les classes et méthodes */
+                //Lister les classes et méthodes 
                 TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses, xml);
         
-                /* générer les classes de test */
+                // générer les classes de test 
                 System.out.println("*** Création des classes de test ***");
                 for (String classe : classes)
                 {
@@ -231,24 +244,11 @@ public class CreateTest
         }
         catch (Exception e)
         {
+            
             System.out.println("Erreur générale d'initialisation : " + e.getMessage());
         }
         System.out.println("*** Fin traitement ***");
     }
-
-    /*
-     * private static void loadJframe() { // Création de la fenêtre principale JFrame frame = new
-     * JFrame("Sélection de fichier"); frame.setSize(400, 200); frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-     * frame.setLayout(new FlowLayout()); // Alignement simple des composants frame.setLocationRelativeTo(null); // Centre
-     * la fenêtre sur l'écran //bouton de sélection JButton bouton = new JButton("Fichier"); JLabel labelResultat = new
-     * JLabel("Aucun fichier sélectionné"); bouton.addActionListener(new ActionListener() {
-     * @Override public void actionPerformed(ActionEvent e) { // Création du sélecteur de fichiers JFileChooser explorateur
-     * = new JFileChooser(); // Optionnel : Pour choisir uniquement des dossiers, décommentez la ligne suivante : //
-     * explorateur.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Ouverture de la boîte de dialogue int resultat =
-     * explorateur.showOpenDialog(frame); // Si l'utilisateur a validé un fichier if (resultat ==
-     * JFileChooser.APPROVE_OPTION) { File fichierSelectionne = explorateur.getSelectedFile();
-     * labelResultat.setText("Fichier : " + fichierSelectionne.getName()); } else {
-     * labelResultat.setText("Sélection annulée."); } } }); frame.add(bouton); frame.add(labelResultat); // Rendre la
-     * fenêtre visible frame.setVisible(true); }
-     */
+*/
+   
 }

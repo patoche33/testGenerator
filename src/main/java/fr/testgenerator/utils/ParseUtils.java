@@ -34,8 +34,8 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 
-import fr.testgenerator.bean.ElementExpression;
-import fr.testgenerator.bean.MethodInfo;
+import fr.testgenerator.core.bean.ElementExpression;
+import fr.testgenerator.core.bean.MethodInfo;
 
 public class ParseUtils
 {

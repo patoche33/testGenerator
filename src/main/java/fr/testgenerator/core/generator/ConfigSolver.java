@@ -1,4 +1,4 @@
-package fr.testgenerator;
+package fr.testgenerator.core.generator;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
@@ -8,7 +8,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
-import fr.testgenerator.config.Config;
+import fr.testgenerator.core.config.Config;
+import fr.testgenerator.ui.controller.MainController;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +19,13 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ConfigSolver
 {
-
+    private static Logger logger = LogManager.getLogger(ConfigSolver.class);
+    
     public static JavaSymbolSolver javaSymbolSolver;
 
     private static ParserConfiguration instance;
@@ -47,7 +52,7 @@ public class ConfigSolver
 
         // Permet de résoudre les classes du projet (fichiers .java locaux)
         // (ex: "src/main/java")
-        File srcDirectory = new File(Config.getROOTPROJECT());
+        File srcDirectory = new File(Config.getROOTCLASSES());
         if (srcDirectory.exists())
         {
             typeSolver.add(new JavaParserTypeSolver(srcDirectory));
@@ -56,7 +61,8 @@ public class ConfigSolver
         // dependency autres
         for (String dependencie : Config.getSourceDependencies())
         {
-            System.out.println("PARCOURS DE " + dependencie);
+            logger.info("PARCOURS DE " + dependencie);
+            //System.out.println("PARCOURS DE " + dependencie);
             Path m2 = Paths.get(dependencie); // source maven par exemple
             try (Stream<Path> flux = Files.walk(m2))
             {
@@ -70,7 +76,8 @@ public class ConfigSolver
                         }
                         catch (IOException e)
                         {
-                            System.out.println("ERREUR dans ajout Type Resolver de MAVEN dependance ");
+                            logger.error("ERREUR dans ajout Type Resolver de MAVEN dependance ");
+                           // System.out.println("ERREUR dans ajout Type Resolver de MAVEN dependance ");
                         }
                     }); // Afficher le chemin
 

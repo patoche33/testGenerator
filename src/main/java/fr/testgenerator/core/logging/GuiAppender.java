@@ -1,4 +1,4 @@
-package fr.testgenerator.logging;
+package fr.testgenerator.core.logging;
 
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;

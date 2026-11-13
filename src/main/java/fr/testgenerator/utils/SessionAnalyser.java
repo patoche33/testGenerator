@@ -10,11 +10,11 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
-import fr.testgenerator.bean.ClassInfo;
-import fr.testgenerator.bean.FieldInfo;
-import fr.testgenerator.bean.MethodCallInfo;
-import fr.testgenerator.bean.MethodInfo;
-import fr.testgenerator.bean.SessionAttributeInfo;
+import fr.testgenerator.core.bean.ClassInfo;
+import fr.testgenerator.core.bean.FieldInfo;
+import fr.testgenerator.core.bean.MethodCallInfo;
+import fr.testgenerator.core.bean.MethodInfo;
+import fr.testgenerator.core.bean.SessionAttributeInfo;
 
 public class SessionAnalyser
 {

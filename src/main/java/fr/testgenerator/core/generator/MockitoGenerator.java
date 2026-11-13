@@ -1,10 +1,10 @@
-package fr.testgenerator;
+package fr.testgenerator.core.generator;
 
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.squareup.javapoet.*;
 
-import fr.testgenerator.bean.ClassInfo;
+import fr.testgenerator.core.bean.ClassInfo;
 
 import java.util.HashMap;
 import java.util.Map;

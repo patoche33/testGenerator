@@ -1,4 +1,4 @@
-package fr.testgenerator;
+package fr.testgenerator.core.generator;
 
 public class FileClassException extends RuntimeException
 {

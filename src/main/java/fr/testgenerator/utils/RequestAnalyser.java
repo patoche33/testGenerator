@@ -7,9 +7,9 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.resolution.types.ResolvedType;
 
-import fr.testgenerator.bean.MethodInfo;
-import fr.testgenerator.bean.Mocks;
-import fr.testgenerator.bean.RequestAttributeInfo;
+import fr.testgenerator.core.bean.MethodInfo;
+import fr.testgenerator.core.bean.Mocks;
+import fr.testgenerator.core.bean.RequestAttributeInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;

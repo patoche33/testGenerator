@@ -1,4 +1,4 @@
-package fr.testgenerator.bean;
+package fr.testgenerator.core.bean;
 
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;

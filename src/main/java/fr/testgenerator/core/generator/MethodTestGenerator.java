@@ -1,4 +1,4 @@
-package fr.testgenerator;
+package fr.testgenerator.core.generator;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseException;
@@ -41,13 +41,13 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import com.squareup.javapoet.*;
 import com.squareup.javapoet.MethodSpec.Builder;
 
-import fr.testgenerator.bean.ClassInfo;
-import fr.testgenerator.bean.ElementExpression;
-import fr.testgenerator.bean.MethodCallInfo;
-import fr.testgenerator.bean.MethodInfo;
-import fr.testgenerator.bean.Mocks;
-import fr.testgenerator.bean.RequestAttributeInfo;
-import fr.testgenerator.bean.SessionAttributeInfo;
+import fr.testgenerator.core.bean.ClassInfo;
+import fr.testgenerator.core.bean.ElementExpression;
+import fr.testgenerator.core.bean.MethodCallInfo;
+import fr.testgenerator.core.bean.MethodInfo;
+import fr.testgenerator.core.bean.Mocks;
+import fr.testgenerator.core.bean.RequestAttributeInfo;
+import fr.testgenerator.core.bean.SessionAttributeInfo;
 import fr.testgenerator.utils.ParseUtils;
 import fr.testgenerator.utils.RequestAnalyser;
 import fr.testgenerator.utils.SessionAnalyser;

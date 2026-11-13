@@ -1,4 +1,4 @@
-package fr.testgenerator;
+package fr.testgenerator.core.generator;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
@@ -22,10 +22,10 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.squareup.javapoet.*;
 import com.squareup.javapoet.JavaFile.Builder;
 
-import fr.testgenerator.bean.ClassInfo;
-import fr.testgenerator.bean.FieldInfo;
-import fr.testgenerator.bean.MethodCallInfo;
-import fr.testgenerator.bean.MethodInfo;
+import fr.testgenerator.core.bean.ClassInfo;
+import fr.testgenerator.core.bean.FieldInfo;
+import fr.testgenerator.core.bean.MethodCallInfo;
+import fr.testgenerator.core.bean.MethodInfo;
 import fr.testgenerator.utils.ParseUtils;
 import fr.testgenerator.utils.XmlInjection;
 
@@ -70,7 +70,6 @@ public class TestClassGenerator
         catch (Exception e)
         {
             logger.error("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
-            //System.err.println("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
         }
 
         Path start = Paths.get(rootProject);
@@ -97,6 +96,8 @@ public class TestClassGenerator
                         // Log
                     }
                 });
+                
+           
         }
     }
 
@@ -213,8 +214,7 @@ public class TestClassGenerator
                         }
                         catch (Exception e)
                         {
-                            System.err
-                                .println("Impossible de résoudre l'appel : " + methodCall.getNameAsString() + " (" + e.getMessage() + ")");
+                            logger.warn("Impossible de résoudre l'appel : " + methodCall.getNameAsString() + " (" + e.getMessage() + ")");
                         }
                     });
                     methodInfo.setCalls(mapCalls);
@@ -261,7 +261,8 @@ public class TestClassGenerator
             }
             catch (Exception e)
             {
-                System.out.println("File " + file + " :" + e.getMessage());
+                logger.warn("File " + file + " :" + e.getMessage());
+               // System.out.println("File " + file + " :" + e.getMessage());
             }
 
         });
@@ -283,8 +284,7 @@ public class TestClassGenerator
         ClassInfo classInfo = classes.get(pkg + "." + className);
 
         logger.info("Traitement de " + pkg + "." + className);
-        //System.out.println("Traitement de " + pkg + "." + className);
-
+        
         /* Ecriture de la classe de test */
  
         
