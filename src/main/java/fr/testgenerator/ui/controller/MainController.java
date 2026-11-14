@@ -36,8 +36,9 @@ public class MainController {
      *
      */
     private void initListeners() {
-        //ouverture boite dialogue pour chemin des sources du projet
+        //ouverture boite dialogue pour chemin des sources du projet ,...
         view.getButtonSrcProj().addActionListener(e -> chooseDirectory(view.getFieldScrProj()));
+        view.getButtonSrcClas().addActionListener(e -> chooseDirectory(view.getFieldScrClas()));
         //execution de la genertion
         view.getButtonGo().addActionListener(e -> startGeneration());
         

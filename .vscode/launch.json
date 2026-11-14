@@ -6,15 +6,15 @@
     "configurations": [
         {
             "type": "java",
-            "name": "CreateTest",
+            "name": "AppLauncher",
             "request": "launch",
-            "mainClass": "fr.testgenerator.CreateTest",
-            "projectName": "Tests",
-             "args": [
+            "mainClass": "fr.testgenerator.AppLauncher",
+            "projectName": "Tests", "args": [
                 "--gui"
-            ]
+            ],
+            "vmArgs": "-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel -Dswing.systemlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel"
         },
-        
+       
         {
             "type": "java",
             "name": "Current File",
