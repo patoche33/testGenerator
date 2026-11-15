@@ -39,6 +39,13 @@ public class MainController {
         //ouverture boite dialogue pour chemin des sources du projet ,...
         view.getButtonSrcProj().addActionListener(e -> chooseDirectory(view.getFieldScrProj()));
         view.getButtonSrcClas().addActionListener(e -> chooseDirectory(view.getFieldScrClas()));
+        view.getButtonSrcOut().addActionListener(e -> chooseDirectory(view.getFieldScrOut()));
+        view.getButtonAddClasses().addActionListener(e -> addPath(view.getListModelClasses(), "Classe à tester", JFileChooser.FILES_ONLY));
+        view.getButtonRemClasses().addActionListener(e -> removePath(view.getListModelClasses(), view.getPathListClasses()));
+        view.getButtonAddDirs().addActionListener(e -> addPath(view.getListModelDirs(), "Dossier des classes à tester", JFileChooser.DIRECTORIES_ONLY));
+        view.getButtonRemDirs().addActionListener(e -> removePath(view.getListModelDirs(), view.getPathListDirs()));
+        view.getButtonAddDeps().addActionListener(e -> addPath(view.getListModelDeps(), "Dossier des dépendances (Maven ou autres jars)", JFileChooser.DIRECTORIES_ONLY));
+        view.getButtonRemDeps().addActionListener(e -> removePath(view.getListModelDeps(), view.getPathListDeps()));
         //execution de la genertion
         view.getButtonGo().addActionListener(e -> startGeneration());
         
@@ -79,6 +86,41 @@ public class MainController {
         }
     }
     
+    private void addPath(DefaultListModel<String> listModel, String title, int type) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle(title);
+        // Limite la sélection aux dossiers uniquement
+        chooser.setFileSelectionMode(type);
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        int resultat = chooser.showOpenDialog(this.view);
+        if (resultat == JFileChooser.APPROVE_OPTION) {
+            File dossierSelectionne = chooser.getSelectedFile();
+            String chemin = dossierSelectionne.getAbsolutePath();
+
+            // Évite les doublons dans la liste
+            if (!listModel.contains(chemin)) {
+                listModel.addElement(chemin);
+            } else {
+                JOptionPane.showMessageDialog(this.view, 
+                    "Ce répertoire est déjà dans la liste.", 
+                    "Information", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
+
+    private void removePath(DefaultListModel<String> listModel, JList<String> pathList) {
+        int indexSelectionne = pathList.getSelectedIndex();
+        if (indexSelectionne != -1) {
+            listModel.remove(indexSelectionne);
+        } else {
+            JOptionPane.showMessageDialog(this.view, 
+                "Veuillez d'abord cliquer sur un chemin dans la liste pour le retirer.", 
+                "Aucune sélection", 
+                JOptionPane.WARNING_MESSAGE);
+        }
+    }
     
     /**
      * 
@@ -199,6 +241,94 @@ public class MainController {
        
     }
     */
-    
+    /*
+    import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+
+public class GestionRepertoiresSwing extends JFrame {
+
+    private DefaultListModel<String> listModel;
+    private JList<String> pathList;
+
+    public GestionRepertoiresSwing() {
+        // Configuration de la fenêtre principale
+        setTitle("Sélecteur de répertoires");
+        setSize(550, 350);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
+
+        // 1. Création du modèle et de la zone d'affichage (JList)
+        listModel = new DefaultListModel<>();
+        pathList = new JList<>(listModel);
+        pathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // Ajout d'une barre de défilement et d'une bordure
+        JScrollPane scrollPane = new JScrollPane(pathList);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Répertoires sélectionnés"));
+        add(scrollPane, BorderLayout.CENTER);
+
+        // 2. Création du panneau pour les boutons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton addButton = new JButton("Ajouter un répertoire...");
+        JButton removeButton = new JButton("Retirer la sélection");
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(removeButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // 3. Action du bouton "Ajouter"
+        addButton.addActionListener(e -> ajouterRepertoire());
+
+        // 4. Action du bouton "Retirer"
+        removeButton.addActionListener(e -> retirerRepertoire());
+    }
+
+    private void ajouterRepertoire() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Choisir un répertoire");
+        // Limite la sélection aux dossiers uniquement
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        int resultat = chooser.showOpenDialog(this);
+        if (resultat == JFileChooser.APPROVE_OPTION) {
+            File dossierSelectionne = chooser.getSelectedFile();
+            String chemin = dossierSelectionne.getAbsolutePath();
+
+            // Évite les doublons dans la liste
+            if (!listModel.contains(chemin)) {
+                listModel.addElement(chemin);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Ce répertoire est déjà dans la liste.", 
+                    "Information", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
+
+    private void retirerRepertoire() {
+        int indexSelectionne = pathList.getSelectedIndex();
+        if (indexSelectionne != -1) {
+            listModel.remove(indexSelectionne);
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Veuillez d'abord cliquer sur un chemin dans la liste pour le retirer.", 
+                "Aucune sélection", 
+                JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Lancement sécurisé dans l'Event Dispatch Thread (EDT)
+        SwingUtilities.invokeLater(() -> {
+            new GestionRepertoiresSwing().setVisible(true);
+        });
+    }
+}
+
+    */
     
 }
