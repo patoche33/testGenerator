@@ -279,6 +279,20 @@ public class MainController
             String rootProject = (String) config.get("project.root");
             String rootClasses= (String) config.get("project.classes");
             String out= (String) config.get("output");
+            String depend= (String) config.get("sourceDependencies");
+            if (depend != null && !depend.trim().isEmpty()) {
+                // Découpage par la virgule
+                String[] deps = depend.split(",");
+                
+                for (String dep : deps) {
+                    String cleanItem = dep.trim();
+                    // On ignore les éléments vides (par exemple s'il y a une virgule finale)
+                    if (!cleanItem.isEmpty()) {
+                        view.getListModelDeps().addElement(cleanItem);
+                        
+                    }
+                }
+            }    
             /*
              * config.get("sourceClasses");
             config.get("out");
