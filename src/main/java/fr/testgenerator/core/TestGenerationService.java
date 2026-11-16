@@ -13,6 +13,7 @@ import fr.testgenerator.core.bean.GenerationProgressListener;
 import fr.testgenerator.core.config.Config;
 import fr.testgenerator.core.generator.TestClassGenerator;
 import fr.testgenerator.ui.controller.MainController;
+import fr.testgenerator.ui.view.MainWindow;
 
 public class TestGenerationService
 {
@@ -42,13 +43,25 @@ public class TestGenerationService
      *
      * @param listener
      */
-    public static void startGui(GenerationProgressListener listener)
+    public static void startGui(MainWindow view, GenerationProgressListener listener) throws IOException
     {
         Properties config = new Properties();
         config.put("sourceClasses", Config.getROOTCLASSES());
-        config.put("out", Config.getOUTPUT());
+       
         config.put("classes", Config.getCLASSES());
         config.put("xml", Config.getXMLINJECTION());
+
+       ;
+        //propertie output
+        File fileSrc = new File(view.getFieldScrCOut().getText());
+        if (!fileSrc.exists() || !fileSrc.isDirectory())
+        {
+                throw new IOException("Répertoire des classes de test (paramètre output) incrorect ou inexistant !\n");
+        }
+        else {
+            config.put("out", view.getFieldScrCOut().getText());
+            logger.info("   -> Répertoire des classes de test: " + config.getProperty("out") + " Ok.");
+        }
         startProgram(listener,   config );
     
     }

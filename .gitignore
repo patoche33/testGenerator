@@ -1,1 +1,11 @@
 ./target/
+target/classes/fr/testgenerator/cli/CliRunner.class
+target/classes/fr/testgenerator/core/TestGenerationService.class
+target/classes/fr/testgenerator/core/config/Config.class
+target/classes/fr/testgenerator/core/generator/ConfigSolver.class
+target/classes/fr/testgenerator/core/generator/TestClassGenerator.class
+target/classes/fr/testgenerator/ui/GuiLauncher.class
+target/classes/fr/testgenerator/ui/controller/MainController.class
+target/classes/fr/testgenerator/ui/controller/MainController$1.class
+target/classes/fr/testgenerator/ui/controller/MainController$1$1.class
+target/classes/fr/testgenerator/ui/view/MainWindow.class
