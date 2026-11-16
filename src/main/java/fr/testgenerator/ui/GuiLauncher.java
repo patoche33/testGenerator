@@ -26,7 +26,8 @@ public class GuiLauncher
         // Toujours démarrer Swing dans l'Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
             MainWindow view = new MainWindow();
-            new MainController(view, generationService);
+            MainController controller = new MainController(view, generationService);
+            controller.loadConfiguration();
             view.setVisible(true);
         });
     }

@@ -61,10 +61,10 @@ public class TestClassGenerator
 
     public TestClassGenerator(String rootProject, String xml) throws IOException
     {
-
+       
         try
         {
-            if (xml != null)
+            if (xml != "")
             {
                 xmlProperties = XmlInjection.extraireNomsProprietesDepuisXml(xml);
             }

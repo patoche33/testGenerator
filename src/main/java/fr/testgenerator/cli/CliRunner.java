@@ -19,7 +19,7 @@ public class CliRunner
     public int run(String[] args)
     {
         try {
-            generationService.startProgram(new ConsoleProgressListener());
+            generationService.startCli(new ConsoleProgressListener());
             return 0; // Code de succès
         }
         catch (Exception e) {

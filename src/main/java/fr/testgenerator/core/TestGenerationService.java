@@ -1,8 +1,10 @@
 package fr.testgenerator.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,22 +17,63 @@ import fr.testgenerator.ui.controller.MainController;
 public class TestGenerationService
 {
     private static Logger logger = LogManager.getLogger(TestGenerationService.class);
-
-    public static void startProgram(GenerationProgressListener listener)
+   
+    private static TestClassGenerator testClassGenerator;
+    
+    /**
+     * 
+     * mode ligne de commande
+     *
+     * @param listener
+     */
+    public static void startCli(GenerationProgressListener listener)
+    {
+        Properties config = new Properties();
+        config.put("sourceClasses", Config.getROOTCLASSES());
+        config.put("out", Config.getOUTPUT());
+        config.put("classes", Config.getCLASSES());
+        config.put("xml", Config.getXMLINJECTION());
+        startProgram(listener,   config );
+    }
+    
+    /**
+     * 
+     * mode interface graphique
+     *
+     * @param listener
+     */
+    public static void startGui(GenerationProgressListener listener)
+    {
+        Properties config = new Properties();
+        config.put("sourceClasses", Config.getROOTCLASSES());
+        config.put("out", Config.getOUTPUT());
+        config.put("classes", Config.getCLASSES());
+        config.put("xml", Config.getXMLINJECTION());
+        startProgram(listener,   config );
+    
+    }
+    //public static void startProgram(GenerationProgressListener listener)
+    public static void startProgram(GenerationProgressListener listener,  Properties config )
     {
         try
         {
-            String sourceClasses = Config.getROOTCLASSES();
+            
+            /*String sourceClasses = Config.getROOTCLASSES();
             String out = Config.getOUTPUT();
             List<String> classes = Config.getCLASSES();
             String xml = Config.getXMLINJECTION();
-    
+    */
+            String sourceClasses = (String) config.get("sourceClasses");
+            String out = (String) config.get("out");
+            List<String> classes = (List<String>) config.get("classes");
+            String xml = (String) config.get("xml");
+            
             if (sourceClasses != null && out != null && !classes.isEmpty() )
             {
                 logger.info("Démarrage de l'analyse...");
 
                 /* Lister les classes et méthodes */
-                TestClassGenerator testClassGenerator = new TestClassGenerator(sourceClasses, xml);
+                 testClassGenerator = new TestClassGenerator(sourceClasses, xml);
         
                 /* générer les classes de test */
                 listener.onScanCompleted(classes.size());
@@ -66,5 +109,48 @@ public class TestGenerationService
             
         }
         
+    }
+    
+    /**
+     * 
+     * Appelé depuis le plugin sur chois d'une classe
+     *
+     * @param sourceClasses
+     * @param out
+     * @throws IOException
+     */
+    public static void startForClassSelected(String sourceClasses, String out ) 
+    {
+        
+        try
+        {
+            String xml = Config.getXMLINJECTION();
+    
+            if (sourceClasses != null && out != null )
+            {
+                logger.info("Scan du projet");
+    
+                /* Lister les classes et méthodes */
+                testClassGenerator = new TestClassGenerator(sourceClasses, xml);
+                logger.info("Scan terminé");
+            }    
+        }
+        catch (Exception e)
+        {
+            logger.error("Erreur générale d'initialisation : " + e.getMessage());
+            
+        }
+    }
+    
+    public static void generateTestFor(File source, String out )
+    {
+        try
+        {
+            testClassGenerator.generate(source, Paths.get(out));
+        }
+        catch (Exception e)
+        {
+            logger.error("Erreur lors du traitement du fichier '" + source + "' : " + e.getMessage());
+            }
     }
 }

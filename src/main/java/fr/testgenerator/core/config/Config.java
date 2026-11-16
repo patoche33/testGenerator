@@ -34,7 +34,7 @@ public final class Config
 
     private static String OUTPUT;
     
-    private static String XMLINJECTION;
+    private static String XMLINJECTION = "";
 
     private static List<String> CLASSES = new ArrayList<>();
 

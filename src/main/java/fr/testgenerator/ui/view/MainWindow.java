@@ -222,17 +222,32 @@ public class MainWindow extends JFrame
     {
         return fieldScrProj;
     }
-
+    
+    public void setFieldScrProj(String source)
+    {
+        getFieldScrProj().setText(source);
+    }
+    
     public JTextField getFieldScrClas()
     {
         return fieldScrClas;
     }
 
-     public JTextField getFieldScrCOut()
+    public void setFieldScrClas(String source)
+    {
+        getFieldScrClas().setText(source);
+    }
+    
+    public JTextField getFieldScrCOut()
     {
         return fieldScrOut;
     }
 
+    public void setFieldScrOut(String source)
+    {
+        getFieldScrOut().setText(source);
+    }
+    
     public JButton getButtonAddDeps() {
         return buttonAddDeps;
     }
