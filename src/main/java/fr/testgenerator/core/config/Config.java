@@ -38,6 +38,7 @@ public final class Config
 
     private static List<String> CLASSES = new ArrayList<>();
 
+    /*
     static
     {
         try
@@ -53,17 +54,10 @@ public final class Config
             logger.info("Analyse du fichier config.properties!");
            
             FileInputStream fileInput = new FileInputStream("config.properties");
+            
             PROPERTIES.load(fileInput);
 
-            loadROOTPROJECT();
-
-            loadSourceDependencies();
             
-            loadXmlInjection();
-
-            loadOutput();
-
-            loadClasses();
             
            
 
@@ -74,6 +68,72 @@ public final class Config
             // ex.printStackTrace();
         }
     }
+*/
+    
+    public static void loadConfigFile()
+    {
+        try
+        {
+            File file = new File("config.properties");
+            if (!file.exists() || !file.isFile())
+            {
+                
+                throw new IOException("Fichier config.properties inexistant");
+
+            }
+
+            logger.info("Analyse du fichier config.properties!");
+           
+            FileInputStream fileInput = new FileInputStream("config.properties");
+            
+            PROPERTIES.load(fileInput);
+            
+            loadAndVerifyConfig();
+        }    
+        catch (IOException ex)
+        {
+            System.out.println(ex.getMessage());
+            // ex.printStackTrace();
+        }
+        
+    }
+    
+    public static void loadConfig(Properties properties)
+    {
+        try
+        {
+            logger.info("Analyse de la configuration!");
+            
+            PROPERTIES = properties;
+                       
+            loadAndVerifyConfig();
+            
+            //chemin mis à jour dans loadROOTPROJECT()
+            properties.put("project.classes", getROOTCLASSES());
+            properties.put("classes",  getCLASSES());
+        }    
+        catch (IOException ex)
+        {
+            System.out.println(ex.getMessage());
+            // ex.printStackTrace();
+        }
+        
+    }
+
+    private static void loadAndVerifyConfig() throws IOException
+    {
+        loadROOTPROJECT();
+
+        loadSourceDependencies();
+        
+        loadXmlInjection();
+
+        loadOutput();
+
+        loadClasses();
+        
+    }
+
 
     public static List<String> getCLASSES()
     {
@@ -263,7 +323,8 @@ public final class Config
          */
         
         File fileSrcClasses ;
-        if (!PROPERTIES.containsKey("project.classes"))
+        //pas la proprité ou vide
+        if (!PROPERTIES.containsKey("project.classes") || get("project.classes").isEmpty())
         {
             fileSrcClasses = new File(get("project.root") + "src/main/java/" );
             setROOTCLASSES(get("project.root" ) + "src/main/java/");
@@ -374,7 +435,7 @@ public final class Config
    
     private static void loadXmlInjection()
     {
-        if (PROPERTIES.containsKey("project.xml"))
+        if (PROPERTIES.containsKey("project.xml") && ! get("project.xml").isEmpty())
         {
             File fileSrc = new File(get("project.xml"));
             if (!fileSrc.exists() || !fileSrc.isFile())

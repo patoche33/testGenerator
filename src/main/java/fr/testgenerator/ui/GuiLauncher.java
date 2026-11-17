@@ -27,7 +27,7 @@ public class GuiLauncher
         SwingUtilities.invokeLater(() -> {
             MainWindow view = new MainWindow();
             MainController controller = new MainController(view, generationService);
-            controller.loadConfiguration();
+            //controller.loadConfiguration();
             view.setVisible(true);
         });
     }

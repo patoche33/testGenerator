@@ -32,6 +32,8 @@ public class MainWindow extends JFrame
     private JButton buttonSrcClas;
 
     private JButton buttonSrcOut;
+    
+    private JButton buttonSrcXml;
 
     private JButton buttonAddDeps;
 
@@ -50,7 +52,11 @@ public class MainWindow extends JFrame
     private JTextField fieldScrProj;
     
     private JTextField fieldScrClas;
+    
+    private JTextField fieldScrOut;
 
+    private JTextField fieldScrXml;
+    
     private DefaultListModel<String> listModelClasses;
 
     private  JList<String> pathListClasses ;
@@ -65,8 +71,6 @@ public class MainWindow extends JFrame
   
     private JTextArea logTextArea;
 
-    private JTextField fieldScrOut;
-    
     private JProgressBar progressBar;
 
     public MainWindow()
@@ -120,10 +124,14 @@ public class MainWindow extends JFrame
         //fieldScrClas.setEditable(false); // Empêche la saisie manuelle erronée
         //fieldScrClas.setPreferredSize(new Dimension(400, 30));
 
-        // Ajout des 3 lignes simples (lignes 0, 1, 2)
+        buttonSrcXml= new JButton();
+        fieldScrXml = new JTextField();
+        
+        // Ajout des  lignes simples (lignes 0, 1, 2)
         addSingleRow(topPanel, gbc, 0, "Dossier racine projet :", fieldScrProj, buttonSrcProj);
         addSingleRow(topPanel, gbc, 1, "Dossier des classes :", fieldScrClas, buttonSrcClas);
         addSingleRow(topPanel, gbc, 2, "Dossier de sortie tests :", fieldScrOut, buttonSrcOut);
+        addSingleRow(topPanel, gbc, 3, "Dossier config XMl (spring) :", fieldScrXml, buttonSrcXml);
 
        
         // boutons + - et listes pour classes
@@ -151,9 +159,9 @@ public class MainWindow extends JFrame
         pathListDeps.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
         // Placements des boutons +, - et listes
-        addMultiRow(topPanel, gbc, 3, "Dépendances :", pathListDeps, buttonAddDeps, buttonRemDeps) ;
-        addMultiRow(topPanel, gbc, 4, "Classes à tester :", pathListClasses, buttonAddClasses, buttonRemClasses);
-        addMultiRow(topPanel, gbc, 5, "Dossiers classes à tester:", pathListDirs, buttonAddDirs, buttonRemDirs);
+        addMultiRow(topPanel, gbc, 4, "Dépendances :", pathListDeps, buttonAddDeps, buttonRemDeps) ;
+        addMultiRow(topPanel, gbc, 5, "Classes à tester :", pathListClasses, buttonAddClasses, buttonRemClasses);
+        addMultiRow(topPanel, gbc, 6, "Dossiers classes à tester:", pathListDirs, buttonAddDirs, buttonRemDirs);
 
 
         // ajout au panneau principal
@@ -213,6 +221,11 @@ public class MainWindow extends JFrame
         return buttonSrcOut;
     }
 
+    public JButton getButtonSrcXml()
+    {
+        return buttonSrcXml;
+    }
+    
     public JButton getButtonGo()
     {
         return buttonGo;
@@ -238,16 +251,25 @@ public class MainWindow extends JFrame
         getFieldScrClas().setText(source);
     }
     
-    public JTextField getFieldScrCOut()
-    {
+    public JTextField getFieldScrOut() {
         return fieldScrOut;
     }
-
+    
     public void setFieldScrOut(String source)
     {
         getFieldScrOut().setText(source);
     }
     
+    public JTextField getFieldScrXml()
+    {
+        return fieldScrXml;
+    }
+
+    public void setFieldScrXml(JTextField fieldScrXml)
+    {
+        this.fieldScrXml = fieldScrXml;
+    }
+
     public JButton getButtonAddDeps() {
         return buttonAddDeps;
     }
@@ -295,9 +317,7 @@ public class MainWindow extends JFrame
          return pathListDeps;
     }
     
-    public JTextField getFieldScrOut() {
-        return fieldScrOut;
-    }
+    
 
     public JTextArea getLogTextArea()
     {
@@ -350,8 +370,6 @@ public class MainWindow extends JFrame
         gbc.weightx = 0.0;
         button.setPreferredSize(new Dimension(210, 30));
         panel.add(button, gbc);
-
-      
 
         // Colonne 2 : Champ texte (prend toute la largeur disponible)
         gbc.gridx = 2;

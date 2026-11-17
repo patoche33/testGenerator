@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -36,6 +37,7 @@ public class MainController
         this.service = service;
         this.config = new Properties();
         initListeners();
+        loadConfiguration();
     }
 
     /**
@@ -47,6 +49,7 @@ public class MainController
         view.getButtonSrcProj().addActionListener(e -> chooseDirectory(view.getFieldScrProj()));
         view.getButtonSrcClas().addActionListener(e -> chooseDirectory(view.getFieldScrClas()));
         view.getButtonSrcOut().addActionListener(e -> chooseDirectory(view.getFieldScrOut()));
+        view.getButtonSrcXml().addActionListener(e -> chooseDirectory(view.getFieldScrXml()));
         view.getButtonAddClasses().addActionListener(e -> addPath(view.getListModelClasses(), "Classe à tester", JFileChooser.FILES_ONLY));
         view.getButtonRemClasses().addActionListener(e -> removePath(view.getListModelClasses(), view.getPathListClasses()));
         view.getButtonAddDirs()
@@ -166,7 +169,7 @@ public class MainController
          */
 
         view.getButtonGo().setEnabled(false);
-        view.getFieldScrProj().setText("");
+      
 
         // SwingWorker exécute le travail lourd dans un thread séparé
         SwingWorker<Void, String> worker = new SwingWorker<>()
@@ -175,8 +178,10 @@ public class MainController
             protected Void doInBackground() throws Exception
             {
                 // "publish" envoie les messages de manière sécurisée vers le thread graphique
-                // service.generateTests(options, this::publish);
-                service.startGui(view , new GenerationProgressListener()
+               
+                verifyConfig();
+                
+                service.startGui(config, new GenerationProgressListener()
                 {
                     @Override
                     public void onScanStarted(String message)
@@ -261,10 +266,10 @@ public class MainController
 
     /**
      * 
-     * charher le paramètrage du fichier config.propeties si il existe
+     * charger le paramètrage du fichier config.propeties si il existe
      *
      */
-    public void loadConfiguration() {
+    private void loadConfiguration() {
         try 
         {
             
@@ -307,5 +312,28 @@ public class MainController
                 }
             }
         }    
+    }
+    
+    private void verifyConfig() throws IOException
+    {
+        //reset du Properties config pour le recharger avec les données de la vue
+        config.clear();
+        config.put("project.root",  view.getFieldScrProj().getText());
+        config.put("project.classes", view.getFieldScrClas().getText());
+        config.put("output",  view.getFieldScrOut().getText());
+        config.put("project.xml", view.getFieldScrXml().getText());
+        //recuperer toutes les ligne de la liste dans une String
+        String classes = String.join(", ", Collections.list(view.getListModelClasses().elements()));
+        config.put("classes", classes);
+        //recuperer toutes les ligne de la liste dans une String
+        String directories = String.join(", ", Collections.list(view.getListModelDirs().elements()));
+        config.put("directories", directories);
+        String dependencies = String.join(", ", Collections.list(view.getListModelDirs().elements()));
+        config.put("sourceDependencies", dependencies );
+        
+        //verifier la config
+        Config.loadConfig(config);
+       
+      
     }
 }

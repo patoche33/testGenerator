@@ -30,6 +30,8 @@ public class TestGenerationService
     public static void startCli(GenerationProgressListener listener)
     {
         Properties config = new Properties();
+        //lecture du fichier config.properties
+        Config.loadConfigFile();
         config.put("sourceClasses", Config.getROOTCLASSES());
         config.put("out", Config.getOUTPUT());
         config.put("classes", Config.getCLASSES());
@@ -43,28 +45,13 @@ public class TestGenerationService
      *
      * @param listener
      */
-    public static void startGui(MainWindow view, GenerationProgressListener listener) throws IOException
+    public static void startGui(Properties config, GenerationProgressListener listener) throws IOException
     {
-        Properties config = new Properties();
-        config.put("sourceClasses", Config.getROOTCLASSES());
-       
-        config.put("classes", Config.getCLASSES());
-        config.put("xml", Config.getXMLINJECTION());
-
-       ;
-        //propertie output
-        File fileSrc = new File(view.getFieldScrCOut().getText());
-        if (!fileSrc.exists() || !fileSrc.isDirectory())
-        {
-                throw new IOException("Répertoire des classes de test (paramètre output) incrorect ou inexistant !\n");
-        }
-        else {
-            config.put("out", view.getFieldScrCOut().getText());
-            logger.info("   -> Répertoire des classes de test: " + config.getProperty("out") + " Ok.");
-        }
+      
         startProgram(listener,   config );
     
     }
+    
     //public static void startProgram(GenerationProgressListener listener)
     public static void startProgram(GenerationProgressListener listener,  Properties config )
     {
@@ -76,8 +63,8 @@ public class TestGenerationService
             List<String> classes = Config.getCLASSES();
             String xml = Config.getXMLINJECTION();
     */
-            String sourceClasses = (String) config.get("sourceClasses");
-            String out = (String) config.get("out");
+            String sourceClasses = (String) config.get("project.classes");
+            String out = (String) config.get("output");
             List<String> classes = (List<String>) config.get("classes");
             String xml = (String) config.get("xml");
             
