@@ -170,8 +170,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("RestitIndicateursWebServiceImpl")
-                && methodInfo.getName().equals("findActivitesRestit"))//
+            if (classInfo.getClassName().equals("DroitsAccesWebServiceImpl")
+                && methodInfo.getName().equals("loadInfosUser"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -1276,7 +1276,7 @@ public class MethodTestGenerator
         List<SessionAttributeInfo> sessionGetAttributes = sessionAttributes.get("get");
         List<SessionAttributeInfo> sessionSetAttributes = sessionAttributes.get("set");
 
-        if (!sessionAttributes.isEmpty())
+        if (!sessionGetAttributes.isEmpty() || !sessionSetAttributes.isEmpty())
         {
             if (!getListMocks().contains("HttpSession"))
             {
@@ -1291,6 +1291,7 @@ public class MethodTestGenerator
             Imports.addStaticImport(Imports.MOCKITO, "when");
 
         }
+
         sessionGetAttributes.forEach(attr -> {
             CodeBlock.Builder blockMockito = CodeBlock.builder();
             CodeBlock.Builder blockDeclarations = CodeBlock.builder();
