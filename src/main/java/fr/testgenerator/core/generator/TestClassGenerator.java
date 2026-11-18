@@ -23,6 +23,7 @@ import com.squareup.javapoet.*;
 import com.squareup.javapoet.JavaFile.Builder;
 
 import fr.testgenerator.core.bean.ClassInfo;
+import fr.testgenerator.core.bean.Config;
 import fr.testgenerator.core.bean.FieldInfo;
 import fr.testgenerator.core.bean.MethodCallInfo;
 import fr.testgenerator.core.bean.MethodInfo;
@@ -59,9 +60,10 @@ public class TestClassGenerator
     
     private long totalFiles;
 
-    public TestClassGenerator(String rootProject, String xml) throws IOException
+    public TestClassGenerator(Config config ) throws IOException
     {
        
+        String xml = config.getXmlInjection();
         try
         {
             if (xml != "")
@@ -74,9 +76,9 @@ public class TestClassGenerator
             logger.error("Impossible de résoudre les propriétes du fichier applicationContext-service.xml : " + e.getMessage());
         }
 
-        Path start = Paths.get(rootProject);
+        Path start = Paths.get(config.getRootProjet());
 
-        javaParser = ConfigSolver.getJavaParser();
+        javaParser = ConfigSolver.getJavaParser(config);
 
         // Utilisation d'un try-with-resources pour fermer le flux de fichiers proprement
         try (Stream<Path> stream = Files.walk(start))
@@ -272,7 +274,7 @@ public class TestClassGenerator
 
     }
 
-    public void generate(File sourceFile, Path output) throws IOException
+    public void generate(File sourceFile, Path output, Config config) throws IOException
     {
 
         /* retrouver la classe dans la liste des classes */
@@ -286,7 +288,7 @@ public class TestClassGenerator
         String className = clazz.getNameAsString();
         ClassInfo classInfo = classes.get(pkg + "." + className);
 
-        logger.info("Traitement de " + pkg + "." + className);
+       // logger.info("Traitement de " + pkg + "." + className);
         
         /* Ecriture de la classe de test */
  
@@ -304,7 +306,7 @@ public class TestClassGenerator
         methodTestGenerator.generateSetup(testClass);
 
         /* ajoute les methodes de test */
-        methodTestGenerator.generateMethods(classes, classInfo, testClass);
+        methodTestGenerator.generateMethods(classes, classInfo, testClass, config);
 
         /* ajoute les mocks utilisés par les methodes de test */
         methodTestGenerator.getListMocks().forEach(mock -> MockitoGenerator.addMockitoField(testClass, mock, classInfo));

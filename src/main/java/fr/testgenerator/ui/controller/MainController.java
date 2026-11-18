@@ -6,7 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import fr.testgenerator.core.TestGenerationService;
-import fr.testgenerator.core.config.Config;
+import fr.testgenerator.core.config.ConfigLoader;
+import fr.testgenerator.core.bean.Config;
 import fr.testgenerator.core.bean.GenerationProgressListener;
 import fr.testgenerator.core.logging.GuiAppender;
 import fr.testgenerator.ui.view.MainWindow;
@@ -25,7 +26,7 @@ public class MainController
 
     private final MainWindow view;
     
-    private Properties config;
+    private Properties propertiesConfig;
     
     private final TestGenerationService service;
 
@@ -35,7 +36,7 @@ public class MainController
     {
         this.view = view;
         this.service = service;
-        this.config = new Properties();
+        this.propertiesConfig = new Properties();
         initListeners();
         loadConfiguration();
     }
@@ -179,7 +180,8 @@ public class MainController
             {
                 // "publish" envoie les messages de manière sécurisée vers le thread graphique
                
-                verifyConfig();
+                //verifie la config
+                Config config = verifyConfig();
                 
                 service.startGui(config, new GenerationProgressListener()
                 {
@@ -279,11 +281,11 @@ public class MainController
                 return;
             }
             FileInputStream fileInput = new FileInputStream("config.properties");
-            config.load(fileInput);
+            propertiesConfig.load(fileInput);
             
-            String rootProject = (String) config.get("project.root");
-            String rootClasses= (String) config.get("project.classes");
-            String out= (String) config.get("output");
+            String rootProject = (String) propertiesConfig.get("project.root");
+            String rootClasses= (String) propertiesConfig.get("project.classes");
+            String out= (String) propertiesConfig.get("output");
 
             // Mise à jour de la MainWindow
             view.setFieldScrProj(rootProject);
@@ -300,7 +302,7 @@ public class MainController
 
     public void loadListModel(String prop, DefaultListModel<String> listModel)
     {
-        String property= (String) config.get(prop);
+        String property= (String) propertiesConfig.get(prop);
         if (property != null && !property.trim().isEmpty()) {
             // Découpage par la virgule
             String[] items = property.split(",");
@@ -314,25 +316,25 @@ public class MainController
         }    
     }
     
-    private void verifyConfig() throws IOException
+    private Config verifyConfig() throws IOException
     {
         //reset du Properties config pour le recharger avec les données de la vue
-        config.clear();
-        config.put("project.root",  view.getFieldScrProj().getText());
-        config.put("project.classes", view.getFieldScrClas().getText());
-        config.put("output",  view.getFieldScrOut().getText());
-        config.put("project.xml", view.getFieldScrXml().getText());
+        this.propertiesConfig = new Properties();
+        propertiesConfig.put("project.root",  view.getFieldScrProj().getText());
+        propertiesConfig.put("project.classes", view.getFieldScrClas().getText());
+        propertiesConfig.put("output",  view.getFieldScrOut().getText());
+        propertiesConfig.put("project.xml", view.getFieldScrXml().getText());
         //recuperer toutes les ligne de la liste dans une String
         String classes = String.join(", ", Collections.list(view.getListModelClasses().elements()));
-        config.put("classes", classes);
+        propertiesConfig.put("classes", classes);
         //recuperer toutes les ligne de la liste dans une String
         String directories = String.join(", ", Collections.list(view.getListModelDirs().elements()));
-        config.put("directories", directories);
-        String dependencies = String.join(", ", Collections.list(view.getListModelDirs().elements()));
-        config.put("sourceDependencies", dependencies );
+        propertiesConfig.put("directories", directories);
+        String dependencies = String.join(", ", Collections.list(view.getListModelDeps().elements()));
+        propertiesConfig.put("sourceDependencies", dependencies );
         
-        //verifier la config
-        Config.loadConfig(config);
+        //verifier la config  et retourner bean config si pas erreur de configuartion
+        return ConfigLoader.loadConfig(propertiesConfig);
        
       
     }

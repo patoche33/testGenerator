@@ -8,7 +8,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
-import fr.testgenerator.core.config.Config;
+import fr.testgenerator.core.bean.Config;
+import fr.testgenerator.core.config.ConfigLoader;
 import fr.testgenerator.ui.controller.MainController;
 
 import java.io.File;
@@ -34,16 +35,16 @@ public class ConfigSolver
     {
     }
 
-    public static ParserConfiguration getParserConfiguration() throws IOException
+    public static ParserConfiguration getParserConfiguration(Config config) throws IOException
     {
         if (instance == null)
         {
-            instance = creerParserConfiguration();
+            instance = creerParserConfiguration(config);
         }
         return instance;
     }
 
-    public static ParserConfiguration creerParserConfiguration() throws IOException
+    public static ParserConfiguration creerParserConfiguration(Config config) throws IOException
     {
         CombinedTypeSolver typeSolver = new CombinedTypeSolver();
 
@@ -52,14 +53,14 @@ public class ConfigSolver
 
         // Permet de résoudre les classes du projet (fichiers .java locaux)
         // (ex: "src/main/java")
-        File srcDirectory = new File(Config.getROOTCLASSES());
+        File srcDirectory = new File(config.getRootClasses());
         if (srcDirectory.exists())
         {
             typeSolver.add(new JavaParserTypeSolver(srcDirectory));
         }
 
         // dependency autres
-        for (String dependencie : Config.getSourceDependencies())
+        for (String dependencie : config.getSourceDependencies())
         {
             logger.info("PARCOURS DE " + dependencie);
             //System.out.println("PARCOURS DE " + dependencie);
@@ -89,23 +90,23 @@ public class ConfigSolver
         }
 
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
-        ParserConfiguration config = new ParserConfiguration()
+        ParserConfiguration parserConfiguration = new ParserConfiguration()
             .setAttributeComments(false);
         // .setAttributeComments(false)=> DESACTIVE L'INSERTION DES COMMENTAIRES DANS L'AST.
         // Sinon risque de tomber dans boucle infini et pb de memoire
-        config.setSymbolResolver(symbolSolver);
+        parserConfiguration.setSymbolResolver(symbolSolver);
 
-        return config;
+        return parserConfiguration;
 
     }
 
-    public static JavaParser getJavaParser() throws IOException
+    public static JavaParser getJavaParser(Config config) throws IOException
     {
         // ParserConfiguration config = creerParserConfiguration();
 
-        ParserConfiguration config = ConfigSolver.getParserConfiguration();
+        ParserConfiguration parserConfiguration = ConfigSolver.getParserConfiguration(config);
 
         // Retourner l'instance configurée de JavaParser
-        return new JavaParser(config);
+        return new JavaParser(parserConfiguration);
     }
 }

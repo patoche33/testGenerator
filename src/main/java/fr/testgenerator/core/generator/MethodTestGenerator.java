@@ -42,6 +42,7 @@ import com.squareup.javapoet.*;
 import com.squareup.javapoet.MethodSpec.Builder;
 
 import fr.testgenerator.core.bean.ClassInfo;
+import fr.testgenerator.core.bean.Config;
 import fr.testgenerator.core.bean.ElementExpression;
 import fr.testgenerator.core.bean.MethodCallInfo;
 import fr.testgenerator.core.bean.MethodInfo;
@@ -148,7 +149,7 @@ public class MethodTestGenerator
         builder.addMethod(setUp);
     }
 
-    public void generateMethods(Map<String, ClassInfo> pClasses, ClassInfo pClassInfo, TypeSpec.Builder pBuilder) throws IOException
+    public void generateMethods(Map<String, ClassInfo> pClasses, ClassInfo pClassInfo, TypeSpec.Builder pBuilder, Config config) throws IOException
     {
 
         classes = pClasses;
@@ -158,7 +159,7 @@ public class MethodTestGenerator
         typeNameFactory = new TypeNameFactory(classInfo);
 
         // pour parser et rechercher structures particulières comme try cath, if else
-        javaParser = ConfigSolver.getJavaParser();
+        javaParser = ConfigSolver.getJavaParser(config);
 
         /* recherche des try catch */
         findExceptions();
