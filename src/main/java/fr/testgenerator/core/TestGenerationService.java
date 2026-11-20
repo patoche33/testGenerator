@@ -115,13 +115,14 @@ public class TestGenerationService
      * @param out
      * @throws IOException
      */
-    public static void startForClassSelected(String sourceClasses, String out, Config config ) 
+    public static void startForClassSelected(Config config ) 
     {
         
         try
         {
             String xml = config.getXmlInjection();
-    
+            String sourceClasses = config.getRootProjet();
+            String out = config.getOutput();
             if (sourceClasses != null && out != null )
             {
                 logger.info("Scan du projet");
@@ -138,10 +139,11 @@ public class TestGenerationService
         }
     }
     
-    public static void generateTestFor(File source, String out, Config config  )
+    public static void generateTestFor(File source,  Config config  )
     {
         try
         {
+            String out = config.getOutput();
             testClassGenerator.generate(source, Paths.get(out), config);
         }
         catch (Exception e)

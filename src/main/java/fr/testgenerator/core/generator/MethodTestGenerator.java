@@ -421,10 +421,13 @@ public class MethodTestGenerator
         {
             commentBlocks.forEach(block -> methodeBuilder.addCode(block));
         }
+    
+        declarationBlocks.forEach(b -> System.out.println("Element : [" + b + "]"));
+
         /* ecrire les declarations */
         if (!declarationBlocks.isEmpty())
         {
-            declarationBlocks.forEach(block -> methodeBuilder.addStatement(block));
+           declarationBlocks.forEach(block -> methodeBuilder.addStatement(block));
         }
         /* ecrire les mockito when, donothing ... */
         if (!mockitoBlocks.isEmpty())
@@ -661,8 +664,7 @@ public class MethodTestGenerator
     private void addWhenException(MethodInfo methodInfo, String exception)
     {
         /* gestion when pour exception */
-        CodeBlock.Builder blockInvocation = CodeBlock.builder();
-        CodeBlock.Builder blockDeclaration = CodeBlock.builder();
+       
         StringBuilder blockComment = new StringBuilder();
 
         if (!methodInfo.getExceptions().get(exception).isEmpty())
@@ -671,6 +673,7 @@ public class MethodTestGenerator
             blockComment.append("ICI ajouter le code pour la gestion de l' exception " + exception + " qui peut être déclenché par:\n");
 
             methodInfo.getExceptions().get(exception).forEach((v) -> {
+                
                 blockComment.append("   - " + v.getResolvedMethodDeclaration().getQualifiedSignature() + "\n");
                 /*
                  * cas methode d'une autre classe et methode non pas void (on ne génère pas de when pour les methodes de type void)
@@ -716,11 +719,11 @@ public class MethodTestGenerator
                             /* classe présente dans les imports et déclarations */
                             if (classInfo.getImports().get(classInfo.getFields().get(mock)) != null)
                             {
-                                blockInvocation.add("when($L.$L($L)).thenThrow($L)",
+                                invocationBlocks.add(CodeBlock.of("when($L.$L($L)).thenThrow($L)",
                                     "mock" + mock,
                                     v.getMethodCallExpr().getNameAsString(),
                                     args,
-                                    exception);
+                                    exception));
                             }
 
                         }
@@ -732,14 +735,19 @@ public class MethodTestGenerator
                             Imports.addStaticImport(Imports.MOCKITO, "when");
 
                             String mocked = "mocked" + mock;
-                            blockDeclaration.add("$T<$T> $L = mockStatic($L.class)",
+                            declarationBlocks.add(CodeBlock.of("$T<$T> $L = mockStatic($L.class)",
                                 Imports.MOCKITOSTATIC,
                                 ClassName.get(importMock, mock),
                                 // mock,
-                                mocked, mock);
+                                mocked,
+                                mock));
 
-                            blockInvocation.add("$L.when(()-> $L.$L($L).thenThrow(new $L(\"\"))", mocked, mock, methodName, args,
-                                exception);
+                            invocationBlocks.add(CodeBlock.of("$L.when(()-> $L.$L($L)).thenThrow(new $L(\"\"))", 
+                                mocked, 
+                                mock, 
+                                methodName,
+                                args,
+                                exception));
                         }
 
                     }
@@ -750,14 +758,7 @@ public class MethodTestGenerator
             blockComment.append("*/\n");
 
             commentBlocks.add(blockComment.toString());
-            if (!blockDeclaration.isEmpty())
-            {
-                declarationBlocks.add(blockDeclaration.build());
-            }
-            if (!blockInvocation.isEmpty())
-            {
-                invocationBlocks.add(blockInvocation.build());
-            }
+           
         }
 
     }

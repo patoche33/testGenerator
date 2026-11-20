@@ -677,7 +677,7 @@ public class ParseUtils
                 case "double", "Double" -> "anyDouble";
                 case "boolean", "Boolean" -> "anyBoolean";
                 case "byte", "Byte" -> "anyByte";
-                case "short", "Short" -> "anyShor";
+                case "short", "Short" -> "anyShort";
                 case "float", "Float" -> "anyFloat";
                 case "List" -> "anyList";
                 case "Map" -> "anyMap";
