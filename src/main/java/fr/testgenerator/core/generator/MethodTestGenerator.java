@@ -170,8 +170,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("DroitsAccesWebServiceImpl")
-                && methodInfo.getName().equals("loadInfosUser"))//
+            if (classInfo.getClassName().equals("RapportHistoriqueServiceImpl")
+                && methodInfo.getName().equals("createJasperPrint"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
