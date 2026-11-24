@@ -53,7 +53,8 @@ public class RequestAnalyser
             listMethodCall.forEach((v) -> {
 
                 if (v.asMethodCallExpr().getNameAsString().equals("get") &&
-                    v.asMethodCallExpr().getScope().get().toString().equals(paramVar))
+                    v.asMethodCallExpr().getScope().map(s -> s.toString().equals(paramVar)).orElse(false))
+                    //v.asMethodCallExpr().getScope().get().toString().equals(paramVar))
                 {
                     RequestAttributeInfo info = new RequestAttributeInfo();
 
@@ -122,6 +123,10 @@ public class RequestAnalyser
                 MethodCallExpr internalCall = scopeExpr.asMethodCallExpr();
                 // Extraire les informations de la méthode interne
                 scopeName = internalCall.getNameAsString(); // "getParameterMap"
+                if (internalCall.getScope().isEmpty())
+                {
+                    return; // Exemple : getUser(req).getUid() -> pas de HttpServletRequest en scope
+                }
                 resolvedTypeScope = internalCall.getScope().get().calculateResolvedType();
             }
             else

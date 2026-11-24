@@ -170,8 +170,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("RestitTracabiliteWebServiceImpl")
-                && methodInfo.getName().equals("recupListeTraceJson"))//
+            if (classInfo.getClassName().equals("HistorisationWebServiceImpl")
+                && methodInfo.getName().equals("insertHistoRestit"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -615,7 +615,7 @@ public class MethodTestGenerator
                 }
 
             }
-
+            Imports.addStaticImport(Imports.MOCKITO, "when");
             blockInvocation.add("when($L.$L($L)).thenReturn(" + returnValue + ")",
                 "mock" + StringUtils.capitalize(mock),
                 methodName,
