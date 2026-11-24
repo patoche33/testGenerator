@@ -71,6 +71,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+
 public class MethodTestGenerator
 {
 
@@ -100,11 +101,9 @@ public class MethodTestGenerator
     private List<String> commentBlocks;
 
     private List<String> methodGenererated;
-    
+
     /* clé = fqn valeur= simple name de la variable */
     private Map<String, String> variableBlocks;
-    
-   
 
     private TypeNameFactory typeNameFactory;
 
@@ -149,7 +148,8 @@ public class MethodTestGenerator
         builder.addMethod(setUp);
     }
 
-    public void generateMethods(Map<String, ClassInfo> pClasses, ClassInfo pClassInfo, TypeSpec.Builder pBuilder, Config config) throws IOException
+    public void generateMethods(Map<String, ClassInfo> pClasses, ClassInfo pClassInfo, TypeSpec.Builder pBuilder, Config config)
+        throws IOException
     {
 
         classes = pClasses;
@@ -170,8 +170,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("RapportHistoriqueServiceImpl")
-                && methodInfo.getName().equals("createJasperPrint"))//
+            if (classInfo.getClassName().equals("RestitTracabiliteWebServiceImpl")
+                && methodInfo.getName().equals("recupListeTraceJson"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -365,13 +365,13 @@ public class MethodTestGenerator
 
                             // Ajout du code block contenant when(method(param)).thenReturn()
                             // CodeBlock.Builder block =
-                            addWhen(methodInfo,methodCallInfo );
+                            addWhen(methodInfo, methodCallInfo);
                         }
                     }
                 }
                 else if (methodInfo.getParameters().stream().map(p -> p.getNameAsString()).toList().contains(mock))
                 {
-                   // System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
+                    // System.out.println("DEBUG MOCK Dans les parametres de methode à tester==>" + mock);
                 }
                 else /*
                       * la methode ne fait pas parti des declarations de la classe. Méthode privée de la classe ou Méthode d'une autre
@@ -394,12 +394,12 @@ public class MethodTestGenerator
         {
             methodeBuilder.addComment("Surcharge de la méthode " + methodInfo.getSignature());
         }
-        
+
         SessionAnalyser sessionAnalyser = new SessionAnalyser();
         methodInfo.setSessionAttributes(sessionAnalyser.analyse(methodInfo));
         RequestAnalyser requestAnalyser = new RequestAnalyser();
         methodInfo.setRequestAttributes(requestAnalyser.analyse(methodInfo));
-        
+
         /* gestion du HttpServletRequest */
         buildHttpServletRequest(methodInfo);
 
@@ -421,13 +421,11 @@ public class MethodTestGenerator
         {
             commentBlocks.forEach(block -> methodeBuilder.addCode(block));
         }
-    
-        declarationBlocks.forEach(b -> System.out.println("Element : [" + b + "]"));
 
         /* ecrire les declarations */
         if (!declarationBlocks.isEmpty())
         {
-           declarationBlocks.forEach(block -> methodeBuilder.addStatement(block));
+            declarationBlocks.forEach(block -> methodeBuilder.addStatement(block));
         }
         /* ecrire les mockito when, donothing ... */
         if (!mockitoBlocks.isEmpty())
@@ -601,7 +599,7 @@ public class MethodTestGenerator
 
                 TypeName returnType = typeNameFactory.toTypeName((callType));
                 /*
-                 * retourne le typname d'une implementatation ou retourne type List retournera ArrayList, Map => HashMap
+                 * retourne le typname d'une implementatation ou retourne type. List retournera ArrayList, Map => HashMap
                  */
                 TypeName implType = typeNameFactory.toTypeName(ParseUtils.implemetOfType(callType));
 
@@ -622,12 +620,13 @@ public class MethodTestGenerator
                 "mock" + StringUtils.capitalize(mock),
                 methodName,
                 args);
-            
-            //memoriser la variable receptrice de $L.$L($L)
-            Optional<VariableDeclarator> variableDeclarator =call.getParentNode()
+
+            // memoriser la variable receptrice de $L.$L($L)
+            Optional<VariableDeclarator> variableDeclarator = call.getParentNode()
                 .filter(parent -> parent instanceof VariableDeclarator)
                 .map(parent -> (VariableDeclarator) parent);
-            if (variableDeclarator.isPresent()) {
+            if (variableDeclarator.isPresent())
+            {
                 methodInfo.getVariableWhens().put(variableDeclarator.get().getNameAsString(), returnValue);
             }
         }
@@ -650,7 +649,6 @@ public class MethodTestGenerator
 
         }
 
-       
         /* block when(methode(parametre).theReturn */
         mockitoBlocks.add(blockInvocation.build());
         /* block declaration de variables utilisées en ant que paramètre de la méthode */
@@ -664,7 +662,7 @@ public class MethodTestGenerator
     private void addWhenException(MethodInfo methodInfo, String exception)
     {
         /* gestion when pour exception */
-       
+
         StringBuilder blockComment = new StringBuilder();
 
         if (!methodInfo.getExceptions().get(exception).isEmpty())
@@ -673,7 +671,7 @@ public class MethodTestGenerator
             blockComment.append("ICI ajouter le code pour la gestion de l' exception " + exception + " qui peut être déclenché par:\n");
 
             methodInfo.getExceptions().get(exception).forEach((v) -> {
-                
+
                 blockComment.append("   - " + v.getResolvedMethodDeclaration().getQualifiedSignature() + "\n");
                 /*
                  * cas methode d'une autre classe et methode non pas void (on ne génère pas de when pour les methodes de type void)
@@ -742,9 +740,9 @@ public class MethodTestGenerator
                                 mocked,
                                 mock));
 
-                            invocationBlocks.add(CodeBlock.of("$L.when(()-> $L.$L($L)).thenThrow(new $L(\"\"))", 
-                                mocked, 
-                                mock, 
+                            invocationBlocks.add(CodeBlock.of("$L.when(()-> $L.$L($L)).thenThrow(new $L(\"\"))",
+                                mocked,
+                                mock,
                                 methodName,
                                 args,
                                 exception));
@@ -758,7 +756,7 @@ public class MethodTestGenerator
             blockComment.append("*/\n");
 
             commentBlocks.add(blockComment.toString());
-           
+
         }
 
     }
@@ -1015,7 +1013,6 @@ public class MethodTestGenerator
                     {
                         /* géré dans addWhen car fait parti des calls */
 
-                       
                         newValue = defaultValue(methodReturnType);
 
                     }
@@ -1269,11 +1266,11 @@ public class MethodTestGenerator
 
     }
 
-    private void buildSession(MethodInfo methodInfo )
+    private void buildSession(MethodInfo methodInfo)
     {
-        
-        Map<String, List<SessionAttributeInfo>> sessionAttributes =methodInfo.getSessionAttributes();
-        
+
+        Map<String, List<SessionAttributeInfo>> sessionAttributes = methodInfo.getSessionAttributes();
+
         List<SessionAttributeInfo> sessionGetAttributes = sessionAttributes.get("get");
         List<SessionAttributeInfo> sessionSetAttributes = sessionAttributes.get("set");
 
@@ -1326,31 +1323,36 @@ public class MethodTestGenerator
 
         });
 
-        // ajout des block verify(session).setAttribute(attr_name, attr_value);
+        // Si présence de setAttribute() => ajout des block verify(session).setAttribute(attr_name, attr_value);
+        // sinon fin
+        if (sessionSetAttributes.isEmpty())
+        {
+            return;
+        }
+        
+        Imports.addStaticImport(Imports.MOCKITO, "verify");
         sessionSetAttributes.forEach(attr -> {
             CodeBlock.Builder block = CodeBlock.builder();
-            String valueSetAttribute;
-            //si la valeur du setAttribute est une vaiable: chercher si pametre de methode, 
-            //si vient de httpServletRequest, si resultat de methode (dao) géré par when de Mockito 
-            //si la valeur du setAttribute est le resultat d'un appel d'une autre methode (ex dao)
-            //on recherche le resulatat de cet appel sroqué dans une varianle qui aura été mémorise
-            //lors du when de cete methode
-            
-            
-            if( methodInfo.getVariableWhens().containsKey(attr.getValue()))
+            CodeBlock valueSetAttribute;
+            // si la valeur du setAttribute est une vaiable: chercher si pametre de methode,
+            // si vient de httpServletRequest, si resultat de methode (dao) géré par when de Mockito
+            // si la valeur du setAttribute est le resultat d'un appel d'une autre methode (ex dao)
+            // on recherche le resulatat de cet appel sroqué dans une varianle qui aura été mémorise
+            // lors du when de cete methode
+
+            if (methodInfo.getVariableWhens().containsKey(attr.getValue()))
             {
-                valueSetAttribute = methodInfo.getVariableWhens().get(attr.getValue());
+                valueSetAttribute = CodeBlock.of(methodInfo.getVariableWhens().get(attr.getValue()));
             }
-            else //sinon on tulise le s matcher (any anyInt anyString...)
+            else // sinon on tulise le s matcher (any anyInt anyString...)
             {
                 valueSetAttribute = matcher(attr.getVariableType());
             }
-            
+
             block.add(
-                "verify(mockHttpSession).setAttribute(\"$L\", $L)", 
-                attr.getAttibuteName(), 
-                valueSetAttribute
-                );
+                "verify(mockHttpSession).setAttribute(\"$L\", $L)",
+                attr.getAttibuteName(),
+                valueSetAttribute);
 
             verifyBlocks.add(block.build());
 
@@ -1360,7 +1362,7 @@ public class MethodTestGenerator
 
     private void buildHttpServletRequest(MethodInfo methodInfo)
     {
-       
+
         List<RequestAttributeInfo> requestAttributes = methodInfo.getRequestAttributes();
         List<CodeBlock.Builder> blockParamMap = new ArrayList<CodeBlock.Builder>();
         List<CodeBlock.Builder> blockParamMapWhen = new ArrayList<CodeBlock.Builder>();
@@ -1384,12 +1386,10 @@ public class MethodTestGenerator
             CodeBlock.Builder block = CodeBlock.builder();
             block.add("$T<String, String[]> paramMap = new $T<String, String[]>()", Map.class, HashMap.class);
             blockParamMap.add(block);
-            
-           
-            
+
         }
         requestAttributes.forEach(attr -> {
-            if ("get".equals(attr.getMethodCalled()))//"getParameterMap".equals(attr.getRequestVariable()))
+            if ("get".equals(attr.getMethodCalled()))// "getParameterMap".equals(attr.getRequestVariable()))
             {
                 CodeBlock.Builder block = CodeBlock.builder();
                 block.add("paramMap.put(\"$L\",new String[]{\"\"})", attr.getAttributeOrParamName());
@@ -1403,18 +1403,15 @@ public class MethodTestGenerator
             }
 
         });
-        if (! blockParamMap.isEmpty())
+        if (!blockParamMap.isEmpty())
         {
             blockParamMap.forEach(b -> mockitoBlocks.add(b.build()));
-            
+
             CodeBlock.Builder blockWhen = CodeBlock.builder();
             blockWhen.add("when(mockHttpServletRequest.getParameterMap()).thenReturn(paramMap)");
             mockitoBlocks.add(blockWhen.build());
-            
+
         }
-       
-        
-       
 
     }
 
@@ -1462,39 +1459,145 @@ public class MethodTestGenerator
 
     private CodeBlock buildMatchers(MethodInfo call)
     {
-        CodeBlock.Builder block = CodeBlock.builder();
-
-        for (int i = 0; i < call.getParameters().size(); i++)
-        {
-            if (i > 0)
-                block.add(", ");
-            block.add("$L", matcher(call.getParameters().get(i).getTypeAsString()));
-        }
-        return block.build();
+//        CodeBlock.Builder block = CodeBlock.builder();
+//
+//        for (int i = 0; i < call.getParameters().size(); i++)
+//        {
+//            if (i > 0)
+//                block.add(", ");
+//            block.add("$L", matcher(call.getParameters().get(i).getTypeAsString()));
+//        }
+//        return block.build();
+        
+        
+        return call.getParameters().stream()
+            .map(param -> {
+                String typeName;
+                try
+                {
+                    // Tente de récupérer le nom complet avec package (ex: "com.monprojet.HistoParamDesStrates")
+                    typeName = param.getType().resolve().describe();
+                } 
+                catch (Exception e)
+                {
+                    // Repli sur le nom simple si la résolution échoue (ex: "HistoParamDesStrates")
+                    typeName = param.getTypeAsString();
+                }
+                return matcher(typeName);
+            })
+            .collect(CodeBlock.joining(", "));
 
     }
 
     private CodeBlock buildMatchers(MethodCallExpr call)
     {
-        CodeBlock.Builder block = CodeBlock.builder();
-
-        for (int i = 0; i < call.getArguments().size(); i++)
-        {
-            if (i > 0)
-                block.add(", ");
-            block.add("$L", matcher(call.getArgument(i).toString()));
-        }
-        return block.build();
+        return call.getArguments().stream()
+            .map(this::matcher)
+            .collect(CodeBlock.joining(", "));
 
     }
 
-    private String matcher(String e)
+    /**
+     * matcher en fonction d'une Expression
+     *
+     * @param arg
+     * @return
+     */
+    private CodeBlock matcher(Expression arg)
     {
-        String ret = ParseUtils.getMatcherByType(e);
-        Imports.addStaticImport(Imports.ARG_MATCHERS, ret);
-        return ret + "()";
+        String typeName = resolveTypeName(arg);
+        String matcherMethod = ParseUtils.getMatcherByType(typeName);
+
+        // Si  type standard (anyString, anyInt, anyList...)
+        if (!matcherMethod.equals("any")) {
+            Imports.addStaticImport(Imports.ARG_MATCHERS, matcherMethod);
+            return CodeBlock.of("$L()", matcherMethod);
+        }
+        
+        // Si objet complexe connu (ex: JasperDesign) et non "Object"
+        if (!typeName.equals("Object") && !typeName.equals("java.lang.Object")) {
+            Imports.addStaticImport(Imports.ARG_MATCHERS, "any");
+            // ClassName.bestGuess permet à JavaPoet d'ajouter l'import de JasperDesign automatiquement !
+            ClassName className = ClassName.bestGuess(typeName);
+            return CodeBlock.of("any($T.class)", className);
+        }
+        
+         // sinon
+         Imports.addStaticImport(Imports.ARG_MATCHERS, "any");
+         return CodeBlock.of("any()");
+
+        // Approche native JavaPoet (gère l'import statique si ajouté au JavaFile) :
+        //return CodeBlock.of("$T.$L()", ArgumentMatchers.class, matcherMethod);
+    }
+    
+    /**
+     * matcher en fonction d'un String
+     *
+     * @param e
+     * @return
+     */
+    private CodeBlock matcher(String type)
+    {
+        //Nettoyage des génériques (ex: "Map<String, Object>" -> "Map")
+        String rawType = type.split("<")[0].trim();
+        String matcherMethod = ParseUtils.getMatcherByType(rawType);
+        
+        // Cas des types standards (anyString, anyInt, anyList...)
+        if (!matcherMethod.equals("any")) {
+            Imports.addStaticImport(Imports.ARG_MATCHERS, matcherMethod);
+            return CodeBlock.of("$L()", matcherMethod);
+        }
+        
+        // Cas des objets complexes (ex: JasperDesign) et non "Object"
+        // on exclut aussi les tableaux (ex: "byte[]") car ClassName.bestGuess ne les gère pas directement
+        if (!rawType.equals("Object") && !rawType.equals("java.lang.Object") && !rawType.endsWith("[]")) {
+            Imports.addStaticImport(Imports.ARG_MATCHERS, "any");
+            ClassName className = ClassName.bestGuess(rawType);
+            return CodeBlock.of("any($T.class)", className);
+        }
+        
+        
+        Imports.addStaticImport(Imports.ARG_MATCHERS, "any");
+        return CodeBlock.of("any()");
 
     }
+    
+    /**
+     * 
+     * Resout le type de lexpression
+     *
+     * @param arg
+     * @return
+     */
+    private String resolveTypeName(Expression arg)
+    {
+        try
+        {
+            // Nécessite que JavaSymbolSolver soit configuré sur votre parser
+            ResolvedType resolvedType = arg.calculateResolvedType();
+            return resolvedType.describe(); // Ex: "java.lang.String" ou "int"
+        }
+        catch (Exception e)
+        {
+            // Fallback si le SymbolSolver n'est pas configuré ou échoue
+            if (arg.isStringLiteralExpr())
+                return "String";
+            if (arg.isIntegerLiteralExpr())
+                return "int";
+            if (arg.isLongLiteralExpr())
+                return "long";
+            if (arg.isDoubleLiteralExpr())
+                return "double";
+            if (arg.isBooleanLiteralExpr())
+                return "boolean";
+            if (arg.isCharLiteralExpr())
+                return "char";
+            return "Object";
+        }
+    }
+
+    
+    
 
     /**
      * Retourne un nom de variable en fonction du type ex si type=List<MonObjet> cela retourne lisTMonObjet
@@ -1504,22 +1607,23 @@ public class MethodTestGenerator
      */
     private String abbreviate(Type type)
     {
-        if (type instanceof ClassOrInterfaceType)
+        if (type instanceof ClassOrInterfaceType ciType)
         {
-            ClassOrInterfaceType ciType = (ClassOrInterfaceType) type;
+            String baseName = StringUtils.uncapitalize(ciType.getName().asString());
+            
             Optional<NodeList<Type>> args = ciType.getTypeArguments();
-            if (args.isPresent())
+            if (args.isPresent()  && !args.get().isEmpty())
             {
-                return StringUtils.uncapitalize(ciType.getName().asString()) + args.get().get(0);
+                // Appel récursif sur chaque argument générique + mise en majuscule de la 1ère lettre
+                String genericPart = args.get().stream()
+                        .map(arg -> StringUtils.capitalize(abbreviate(arg)))
+                        .collect(Collectors.joining());
+                return baseName + genericPart;
             }
-            // return "";
-            /*
-             * args.ifPresent(typeList -> { System.out.println("ARGGGG pricipal " + ciType.getName()); for (Type t : typeList) {
-             * System.out.println("ARGGGG " +t); } });
-             */
+            return baseName;
         }
 
-        return StringUtils.uncapitalize(type.toString());// StringUtils.abbreviate(str, 10);
+        return StringUtils.uncapitalize(type.toString());
     }
 
     public String getMockOrNewT(Type type)

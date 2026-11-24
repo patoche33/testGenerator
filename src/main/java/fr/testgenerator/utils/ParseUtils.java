@@ -668,7 +668,13 @@ public class ParseUtils
      */
     public static String getMatcherByType(String type)
     {
-        return switch (type.split("<")[0].trim())
+        // Nettoie les génériques (List<String> -> List) et le package (java.lang.String -> String)
+        String baseType = type.split("<")[0].trim();
+        if (baseType.contains(".")) {
+            baseType = baseType.substring(baseType.lastIndexOf('.') + 1);
+        }
+        
+        return switch (baseType)
             {
                 case "String" -> "anyString";
                 case "char", "Character" -> "anyChar";
