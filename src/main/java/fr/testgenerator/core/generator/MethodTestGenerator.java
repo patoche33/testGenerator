@@ -170,8 +170,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("HistorisationWebServiceImpl")
-                && methodInfo.getName().equals("insertHistoRestit"))//
+            if (classInfo.getClassName().equals("RestitStratesRestesWebServiceImpl")
+                && methodInfo.getName().equals("getStrateSynthese"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
@@ -320,13 +320,6 @@ public class MethodTestGenerator
                 /*
                  * Génération du when ou doNothing si type void
                  */
-
-                // if (mock.equals("historisationwebservice"))
-                // {
-                // System.out.println("YYYSSSS!!!!");
-                // }
-
-                // System.out.println("Traitement méthode appelé " + mock + " . " + methodName);
 
                 String returnValue;
 
@@ -592,9 +585,20 @@ public class MethodTestGenerator
         // methode non static
         if (!resolvedCall.isStatic())
         {
+            
+           
+            
             // methode non static
             String abbrev = abbreviate(callType);
-            if (!abbrev.isEmpty())
+            String varName = ParseUtils.getUniqueVariableName(abbrev, variableBlocks.keySet());
+
+            // Cas où le mock est directement retourné : return strateswebdao.getMessagerieParPeriode(...);
+            // on le memorise
+            if (call.getParentNode().isPresent() && call.getParentNode().get() instanceof ReturnStmt) {
+                methodInfo.setReturnedMockVariable(varName); // ex: sauvegarde "listStratesHistogrammeAgreg"
+            }
+            
+            if (!varName.isEmpty())
             {
 
                 TypeName returnType = typeNameFactory.toTypeName((callType));
@@ -607,11 +611,12 @@ public class MethodTestGenerator
                 {
                     blockDeclarations.add("$T $L  = " + returnValue,
                         returnType,
-                        abbrev,
+                        varName,
                         implType);
-                    returnValue = abbrev;
+                    returnValue = varName;
                     // ajout de la variable dans la map des variables de la methode
-                    variableBlocks.put(returnType.toString(), abbrev);
+                    variableBlocks.put(varName, returnType.toString() );
+                    
                 }
 
             }
@@ -900,10 +905,13 @@ public class MethodTestGenerator
             // gestion assertion
             // la variable a été crée et peut etre utiisée pour assertion
             String attendu = "";
-            if (variableBlocks.containsKey(returnType.toString()))
+            if (methodInfo.getReturnedMockVariable() != null) {
+                attendu = methodInfo.getReturnedMockVariable(); 
+            }
+            /*else if (variableBlocks.containsKey(returnType.toString()))
             {
                 attendu = variableBlocks.get(returnType.toString());
-            }
+            }*/
             else
             { /* creation de la variable resultat Attendu */
 
@@ -1305,7 +1313,7 @@ public class MethodTestGenerator
                     blockMockito.add("when(mockHttpSession.getAttribute(\"" + attr.getAttibuteName() + "\")).thenReturn(" +
                         abbrev + ")");
                     // ajout de la variable dans la map des variables de la methode
-                    variableBlocks.put(parameterType.toString(), abbrev);
+                    variableBlocks.put(abbrev, parameterType.toString());
                 }
 
             }
@@ -1334,17 +1342,17 @@ public class MethodTestGenerator
         sessionSetAttributes.forEach(attr -> {
             CodeBlock.Builder block = CodeBlock.builder();
             CodeBlock valueSetAttribute;
-            // si la valeur du setAttribute est une vaiable: chercher si pametre de methode,
+            // si la valeur du setAttribute est une variable: chercher si parametre de methode,
             // si vient de httpServletRequest, si resultat de methode (dao) géré par when de Mockito
             // si la valeur du setAttribute est le resultat d'un appel d'une autre methode (ex dao)
-            // on recherche le resulatat de cet appel sroqué dans une varianle qui aura été mémorise
+            // on recherche le resulatt de cet appel stoqué dans une variable qui aura été mémorise
             // lors du when de cete methode
 
             if (methodInfo.getVariableWhens().containsKey(attr.getValue()))
             {
                 valueSetAttribute = CodeBlock.of(methodInfo.getVariableWhens().get(attr.getValue()));
             }
-            else // sinon on tulise le s matcher (any anyInt anyString...)
+            else // sinon on tulise les matcher (any anyInt anyString...)
             {
                 valueSetAttribute = matcher(attr.getVariableType());
             }

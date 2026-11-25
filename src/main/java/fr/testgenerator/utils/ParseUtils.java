@@ -1,6 +1,7 @@
 package fr.testgenerator.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -695,4 +696,25 @@ public class ParseUtils
        
         
     }
+    
+    /**
+     * 
+     * Vérife l'existence du nom d'une varaible dans une collection de varaible
+     * Retourne  le nom de la varible si unique ou retourne le nom suivi d'un numéro (compteur) si plusieurs fois
+     * le même nom de variable
+     * @param baseName nom de la variable
+     * @param existingNames collection de variable
+     * @return le nouveau nom de la variable
+     */
+    public static String getUniqueVariableName(String baseName, Collection<String> existingNames) {
+        if (!existingNames.contains(baseName)) {
+            return baseName;
+        }
+        int counter = 1;
+        while (existingNames.contains(baseName + counter)) {
+            counter++;
+        }
+        return baseName + counter;
+    }
+    
    }

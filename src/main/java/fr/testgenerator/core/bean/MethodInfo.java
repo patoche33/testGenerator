@@ -42,19 +42,27 @@ public class MethodInfo {
     
     private boolean isInherited;
    
+    // nom du mock si le return fait appel au mock (ex: return strateswebdao.getMessagerieParPeriode(dateDebut);)
+    private String returnedMockVariable; 
     
     private List<VariableDeclarator> variables = new ArrayList<>();
+    
     private List<AssignExpr> assignExpressions = new ArrayList<>();
+    
     private List<IfStmt> ifStmts = new ArrayList<>();
+    
     private List<ReturnStmt> returnStmts = new ArrayList<>();
+    
     private List<Expression> expressions = new ArrayList<>();
+    
     private NodeList<ReferenceType> thrownExceptions;
     
     private Map<String, List<MethodCallInfo>> exceptions;
-    
-   
+        
     private Map<String, String> variableWhens= new HashMap<>();
+    
     private Map<String, List<SessionAttributeInfo>> sessionAttributes;
+    
     private List<RequestAttributeInfo> requestAttributes;
    
     public MethodInfo()
@@ -270,6 +278,16 @@ public class MethodInfo {
     public void setRequestAttributes(List<RequestAttributeInfo> requestAttributes)
     {
         this.requestAttributes = requestAttributes;
+    }
+
+    public String getReturnedMockVariable()
+    {
+        return returnedMockVariable;
+    }
+
+    public void setReturnedMockVariable(String returnedMockVariable)
+    {
+        this.returnedMockVariable = returnedMockVariable;
     }
 
    
