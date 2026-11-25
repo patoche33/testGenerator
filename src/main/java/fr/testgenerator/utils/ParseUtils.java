@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.Node;
@@ -715,6 +717,24 @@ public class ParseUtils
             counter++;
         }
         return baseName + counter;
+    }
+    
+    /**
+     * 
+     * Utilitaire simple pour nettoyer les clés de Map (ex: "synthese_nombre" -> "syntheseNombre")
+     *
+     * @param input
+     * @return
+     */
+    public static String toCamelCase(String input) {
+        String[] parts = input.split("[^a-zA-Z0-9]");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].isEmpty()) continue;
+            String part = parts[i].toLowerCase();
+            sb.append(i == 0 ? part : StringUtils.capitalize(part));
+        }
+        return sb.isEmpty() ? "result" : sb.toString();
     }
     
    }

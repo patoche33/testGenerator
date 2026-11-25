@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.EnclosedExpr;
@@ -589,7 +590,8 @@ public class MethodTestGenerator
            
             
             // methode non static
-            String abbrev = abbreviate(callType);
+            //String abbrev = abbreviate(callType);
+            String abbrev = resolveVariableName(call, callType);
             String varName = ParseUtils.getUniqueVariableName(abbrev, variableBlocks.keySet());
 
             // Cas où le mock est directement retourné : return strateswebdao.getMessagerieParPeriode(...);
@@ -1633,7 +1635,86 @@ public class MethodTestGenerator
 
         return StringUtils.uncapitalize(type.toString());
     }
+    
+    /**
+     * 
+     * Retourner un nom de variable en fonction du contexte
+     *
+     * @param call methode
+     * @param callType type
+     * @return
+     */
+    private String resolveVariableName(MethodCallExpr call, Type callType) {
+        Optional<Node> parentOpt = call.getParentNode();
 
+        if (parentOpt.isPresent()) {
+            Node parent = parentOpt.get();
+
+            //  Assignation directe -> List<...> listSynthese = dao.get...()
+            if (parent instanceof VariableDeclarator varDecl) {
+                return varDecl.getNameAsString(); // Retourne "listSynthese"
+            }
+
+            //  Réassignation -> listSynthese = dao.get...()
+            if (parent instanceof AssignExpr assignExpr && assignExpr.getTarget().isNameExpr()) {
+                return assignExpr.getTarget().asNameExpr().getNameAsString();
+            }
+
+            // CAS 3 : Passé en paramètre de map.put("cle", dao.get...())
+            if (parent instanceof MethodCallExpr parentCall 
+                    && parentCall.getNameAsString().equals("put") 
+                    && parentCall.getArguments().size() == 2
+                    && parentCall.getArgument(1) == call // Notre appel est bien la valeur (2e arg)
+                    && parentCall.getArgument(0).isStringLiteralExpr()) {
+                
+                String keyName = parentCall.getArgument(0).asStringLiteralExpr().getValue();
+                // Transforme "synthese_nombre" ou "groupes" en camelCase + suffixe
+                return ParseUtils.toCamelCase(keyName) + "Result"; // Retourne "groupesResult", "titresResult"
+            }
+            
+          // Directement dans un return : return dao.getMessagerieParPeriode(...);
+            // -> Extrait "stratesHistogrammeAgreg" depuis List<StratesHistogrammeAgreg>
+            if (parent instanceof ReturnStmt) {
+                return extractDomainName(callType);
+            }
+        }
+
+        return extractDomainName(callType);
+    }
+    
+    /**
+     * 
+     * extraire le nom du type métier  (ex: StratesHistogrammeAgreg -> stratesHistogrammeAgreg)
+     *
+     * @param type
+     * @return
+     */
+    private String extractDomainName(Type type) {
+        if (type instanceof ClassOrInterfaceType ciType) {
+            String typeName = ciType.getNameAsString();
+
+            // Si le type est un conteneur courant (List, Set, Collection, Optional)
+            // on récupère le type générique à l'intérieur (ex: List<StratesHistogrammeAgreg> -> StratesHistogrammeAgreg)
+            if (List.of("List", "Set", "Collection", "Iterable", "Optional").contains(typeName)
+                    && ciType.getTypeArguments().isPresent()
+                    && !ciType.getTypeArguments().get().isEmpty()) {
+                
+                return extractDomainName(ciType.getTypeArguments().get().get(0));
+            }
+
+            // Retourne le nom de la classe en camelCase (ex: "stratesHistogrammeAgreg")
+            return StringUtils.uncapitalize(typeName);
+        }
+        return abbreviate(type);
+    }
+    
+    /**
+     * 
+     * Renvoie soit un nom composé de mock + Type de la variable, soit "new $T()"
+     *
+     * @param type
+     * @return
+     */
     public String getMockOrNewT(Type type)
     {
         String typeString = type.asString();
@@ -1661,6 +1742,13 @@ public class MethodTestGenerator
 
     }
 
+    /**
+     * 
+     * Recherche les structures if else et les ajoute dans la liste des commentaires
+     *
+     * @param ifs
+     * @throws IOException
+     */
     private void findIfElse(List<IfStmt> ifs) throws IOException
     {
         StringBuilder blockComment = new StringBuilder();
@@ -1685,7 +1773,7 @@ public class MethodTestGenerator
     }
 
     /**
-     * DOCUMENTEZ_MOI
+     * Retourne le a liste des calls pour une methode
      *
      * @param pMethod Methode pour laquelle on recherche les calls
      * @return la map des calls clé= signature du call , valeur=call
@@ -1723,7 +1811,13 @@ public class MethodTestGenerator
         });
         return mapCalls;
     }
-
+    
+    /**
+     * 
+     * Recherche la liste des exceptions pour une classe
+     *
+     * @throws IOException
+     */
     private void findExceptions() throws IOException
     {
 
