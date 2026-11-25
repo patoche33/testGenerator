@@ -171,8 +171,8 @@ public class MethodTestGenerator
         for (MethodInfo methodInfo : classInfo.getMethods().values())
         {
 
-            if (classInfo.getClassName().equals("RestitStratesRestesWebServiceImpl")
-                && methodInfo.getName().equals("getStrateSynthese"))//
+            if (classInfo.getClassName().equals("RestitIndicateursWebServiceImpl")
+                && methodInfo.getName().equals("findActivitesRestit"))//
             {
                 System.out.println("DEBUG CLASSE==>" + classInfo.getClassName() +
                     " et METHODE ===>" + methodInfo.getName());
