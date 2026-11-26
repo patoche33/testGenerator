@@ -44,10 +44,13 @@ public class RequestAnalyser
             }
         }
 
-        // trairement parameterMapVariables
+        /* trairement parameterMapVariables */
+        //liste des methodesexpressions de la métode
         List<Expression> listMethodCall =
             methodInfo.getExpressions().stream().filter(e -> e.isMethodCallExpr()).collect(Collectors.toList());
-
+        
+        //pour chaque variable de la liste on vérifie si celle-ci et un scope d'une des methodeexpression
+        //si c'et le ca sil s'agit alors d'un Request Attribute Info
         for (String paramVar : parameterMapVariables)
         {
             listMethodCall.forEach((v) -> {

@@ -39,6 +39,7 @@ import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import com.github.javaparser.utils.Log;
 import com.squareup.javapoet.*;
 import com.squareup.javapoet.MethodSpec.Builder;
 
@@ -1389,7 +1390,7 @@ public class MethodTestGenerator
             classInfo.getImports().put("HttpServletRequest", Mocks.HttpServletRequest.getType());
         }
 
-        if (requestAttributes.stream().anyMatch(at -> "getParameterMap".equals(at.getRequestVariable())))
+        if (requestAttributes.stream().anyMatch(at -> "get".equals(at.getMethodCalled())))
         {
             ClassName mapClass = ClassName.get(Map.class); // java.util.Map
             ClassName hashMapClass = ClassName.get(HashMap.class);
@@ -1562,7 +1563,15 @@ public class MethodTestGenerator
         // on exclut aussi les tableaux (ex: "byte[]") car ClassName.bestGuess ne les gère pas directement
         if (!rawType.equals("Object") && !rawType.equals("java.lang.Object") && !rawType.endsWith("[]")) {
             Imports.addStaticImport(Imports.ARG_MATCHERS, "any");
-            ClassName className = ClassName.bestGuess(rawType);
+            ClassName className;
+            if (!this.classInfo.getImports().get(rawType).isEmpty())
+            {
+                className = ClassName.bestGuess(this.classInfo.getImports().get(rawType));
+            }
+            else
+            {
+                className = ClassName.bestGuess(rawType);
+            }
             return CodeBlock.of("any($T.class)", className);
         }
         
