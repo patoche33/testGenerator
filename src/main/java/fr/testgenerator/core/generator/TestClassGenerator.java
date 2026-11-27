@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -251,6 +252,14 @@ public class TestClassGenerator
                     fieldInfo.setType(field.getElementType().asString());
                     fieldInfo.setName(field.getVariable(0).getNameAsString());
                     fieldInfo.setXmlInject(false);
+                    //si la variable de classe est initialisée
+                    String initializer = field.getVariable(0).getInitializer()
+                        .map(expr -> expr.isStringLiteralExpr()
+                                    ? expr.asStringLiteralExpr().asString() 
+                                    : expr.toString())
+                        .orElse(null);
+                    fieldInfo.setInitializer(initializer);
+                    //injection spring
                     if (props.contains(field.getVariable(0).getNameAsString()))
                     {
                         fieldInfo.setXmlInject(true);
@@ -258,6 +267,7 @@ public class TestClassGenerator
 
                     field.getAnnotations().forEach(anno -> fieldInfo.getAnnotations().add(anno.toString()));
                     classInfo.getFields().put(fieldInfo.getName(), fieldInfo);
+                    
 
                 });
 

@@ -15,6 +15,8 @@ public class FieldInfo
 
     private Boolean xmlInject;
     
+    private String initializer;
+    
     public String getName()
     {
         return name;
@@ -48,6 +50,16 @@ public class FieldInfo
     public void setXmlInject(Boolean xmlInject)
     {
         this.xmlInject = xmlInject;
+    }
+
+    public String getInitializer()
+    {
+        return initializer;
+    }
+
+    public void setInitializer(String initializer)
+    {
+        this.initializer = initializer;
     }
     
     

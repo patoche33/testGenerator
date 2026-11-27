@@ -391,7 +391,7 @@ public class MethodTestGenerator
         }
 
         SessionAnalyser sessionAnalyser = new SessionAnalyser();
-        methodInfo.setSessionAttributes(sessionAnalyser.analyse(methodInfo));
+        methodInfo.setSessionAttributes(sessionAnalyser.analyse(methodInfo, classInfo));
         RequestAnalyser requestAnalyser = new RequestAnalyser();
         methodInfo.setRequestAttributes(requestAnalyser.analyse(methodInfo));
 
@@ -1564,7 +1564,7 @@ public class MethodTestGenerator
         if (!rawType.equals("Object") && !rawType.equals("java.lang.Object") && !rawType.endsWith("[]")) {
             Imports.addStaticImport(Imports.ARG_MATCHERS, "any");
             ClassName className;
-            if (!this.classInfo.getImports().get(rawType).isEmpty())
+            if (this.classInfo.getImports().containsKey(rawType))
             {
                 className = ClassName.bestGuess(this.classInfo.getImports().get(rawType));
             }

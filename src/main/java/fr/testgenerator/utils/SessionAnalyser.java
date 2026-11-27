@@ -22,7 +22,7 @@ public class SessionAnalyser
 
     List<SessionAttributeInfo> sessionSetAttributes = new ArrayList<>();
 
-    public Map<String, List<SessionAttributeInfo>> analyse(MethodInfo methodInfo)
+    public Map<String, List<SessionAttributeInfo>> analyse(MethodInfo methodInfo, ClassInfo classInfo)
     {
         Map<String, List<SessionAttributeInfo>> sessionAttributes = new HashMap<>();
         
@@ -30,7 +30,7 @@ public class SessionAnalyser
         for (VariableDeclarator var : methodInfo.getVariables())
         {
             var.getInitializer().ifPresent(expr -> {
-                analyseExpression(expr, var);
+                analyseExpression(expr, var, methodInfo, classInfo);
             });
 
         }
@@ -53,11 +53,11 @@ public class SessionAnalyser
     }
     
     //gestion des getAttribute
-    private void analyseExpression(Expression expr, VariableDeclarator var)
+    private void analyseExpression(Expression expr, VariableDeclarator var, MethodInfo methodInfo, ClassInfo classInfo)
     {
         if (expr.isCastExpr())
         {
-            analyseExpression(expr.asCastExpr().getExpression(), var);
+            analyseExpression(expr.asCastExpr().getExpression(), var, methodInfo, classInfo);
         }
 
         if (!expr.isMethodCallExpr())
@@ -86,11 +86,27 @@ public class SessionAnalyser
         sessionAttrInfo.setVariableType(var.getTypeAsString());
         sessionAttrInfo.setRequestVariable(sessionCall.getScope().map(Expression::toString).orElse("request"));
         Expression attribute = call.getArgument(0);
+        //string
         if (attribute.isStringLiteralExpr())
         {
             sessionAttrInfo.setAttibuteName(attribute.asStringLiteralExpr().asString());
         }
-      
+        else if (attribute.isNameExpr()) //variable locale ou constante de notre classe ou autre classe
+        {
+            //variable locale 
+            String varName = attribute.asNameExpr().getNameAsString();
+            Optional<VariableDeclarator> localVar = methodInfo.getVariables().stream()
+                .filter(v -> v.getNameAsString().equals(varName))
+                .findFirst();
+            if (localVar.isPresent()) 
+            {
+                sessionAttrInfo.setAttibuteName(localVar.get().getNameAsString());
+            }
+            else if (classInfo.getFields().containsKey(varName)) //variable de classe 
+            {
+                sessionAttrInfo.setAttibuteName(classInfo.getFields().get(varName).getInitializer());
+            }
+        }
         sessionGetAttributes.add(sessionAttrInfo);
         
 
