@@ -1345,6 +1345,7 @@ public class MethodTestGenerator
         sessionSetAttributes.forEach(attr -> {
             CodeBlock.Builder block = CodeBlock.builder();
             CodeBlock valueSetAttribute;
+            String attrName;
             // si la valeur du setAttribute est une variable: chercher si parametre de methode,
             // si vient de httpServletRequest, si resultat de methode (dao) géré par when de Mockito
             // si la valeur du setAttribute est le resultat d'un appel d'une autre methode (ex dao)
@@ -1353,16 +1354,19 @@ public class MethodTestGenerator
 
             if (methodInfo.getVariableWhens().containsKey(attr.getValue()))
             {
+                attrName =  attr.getAttibuteName();
                 valueSetAttribute = CodeBlock.of(methodInfo.getVariableWhens().get(attr.getValue()));
             }
             else // sinon on tulise les matcher (any anyInt anyString...)
             {
+                Imports.addStaticImport(Imports.ARG_MATCHERS, "eq");
+                attrName =  "eq(\"" + attr.getAttibuteName() +"\")";
                 valueSetAttribute = matcher(attr.getVariableType());
             }
 
             block.add(
-                "verify(mockHttpSession).setAttribute(\"$L\", $L)",
-                attr.getAttibuteName(),
+                "verify(mockHttpSession).setAttribute($L, $L)",
+                attrName,//attr.getAttibuteName(),
                 valueSetAttribute);
 
             verifyBlocks.add(block.build());
